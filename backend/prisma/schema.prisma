@@ -1,0 +1,123 @@
+generator client {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../dev.db"
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  password      String   
+  phone         String?
+  avatarUrl     String?
+  createdAt     DateTime @default(now())
+
+  memberships   GroupMember[]
+  paidExpenses  Expense[]      @relation("PaidBy")
+  splits        ExpenseSplit[]
+  settlementsFrom Settlement[] @relation("SettleFrom")
+  settlementsTo   Settlement[] @relation("SettleTo")
+}
+
+model Group {
+  id          String    @id @default(cuid())
+  name        String
+  type        String    @default("ONGOING")   // ONGOING | TRIP
+  currency    String    @default("INR")
+  emoji       String    @default("👥")
+  accentColor String    @default("#6366f1")
+  startDate   DateTime?                      
+  endDate     DateTime?
+  inviteCode  String    @unique
+  finalized   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  members     GroupMember[]
+  expenses    Expense[]
+  recurring   RecurringTemplate[]
+}
+
+model GroupMember {
+  id        String   @id @default(cuid())
+  groupId   String
+  userId    String
+  role      String   @default("MEMBER")  // ADMIN | MEMBER
+  joinedAt  DateTime @default(now())
+
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+}
+
+model Expense {
+  id           String    @id @default(cuid())
+  groupId      String
+  paidById     String
+  amount       Float
+  description  String
+  category     String?
+  receiptUrl   String?
+  splitType    String    // EQUAL | UNEQUAL | PERCENTAGE | SHARES
+  createdAt    DateTime  @default(now())
+  isRecurringInstance Boolean @default(false)
+  recurringTemplateId String?
+
+  group        Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  paidBy       User      @relation("PaidBy", fields: [paidById], references: [id], onDelete: Cascade)
+  splits       ExpenseSplit[]
+}
+
+model ExpenseSplit {
+  id          String  @id @default(cuid())
+  expenseId   String
+  userId      String
+  amountOwed  Float   // this user's share of the expense
+
+  expense     Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId])
+}
+
+model RecurringTemplate {
+  id          String   @id @default(cuid())
+  groupId     String
+  name        String            // e.g. "Monthly Mess Bill"
+  defaultAmount Float?
+  splitRule   String            // JSON string
+  dayOfMonth  Int
+  category    String   @default("Recurring")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+model Settlement {
+  id          String   @id @default(cuid())
+  groupId     String
+  fromUserId  String
+  toUserId    String
+  amount      Float
+  method      String?          // "UPI" | "CASH"
+  confirmedByRecipient Boolean @default(false)
+  createdAt   DateTime @default(now())
+
+  fromUser    User @relation("SettleFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser      User @relation("SettleTo", fields: [toUserId], references: [id], onDelete: Cascade)
+}
+
+model ReminderLog {
+  id          String   @id @default(cuid())
+  fromUserId  String
+  toUserId    String
+  groupId     String
+  sentAt      DateTime @default(now())
+}
