@@ -135,33 +135,28 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-4 max-w-lg mx-auto space-y-6">
+    <div className="dashboard-wrapper">
       {/* Greeting */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <h1 className="text-2xl font-bold">
-          Hey, {session?.user?.name?.split(" ")[0] || "there"} 👋
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+        <h1 className="dashboard-greeting-title">
+          Hey, {session.user.name.split(" ")[0]} 👋
         </h1>
-        <p className="text-sm mt-1" style={{ color: "var(--color-text-secondary)" }}>
+        <p className="dashboard-greeting-subtitle">
           Here&apos;s your balance overview
         </p>
       </motion.div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="summary-cards-grid">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
-          className="glass-card p-4 glow-green"
+          className="summary-card glow-green"
         >
-          <div className="flex items-center gap-2 mb-2">
+          <div className="summary-card-header">
             <TrendingUp className="w-4 h-4" style={{ color: "var(--color-success)" }} />
-            <span className="text-xs font-medium" style={{ color: "var(--color-text-secondary)" }}>
-              You&apos;re owed
-            </span>
+            <span className="summary-card-title">You&apos;re owed</span>
           </div>
           <p className="text-xl font-bold balance-positive">
             {formatCurrency(totalOwed)}
@@ -172,13 +167,11 @@ export default function DashboardPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.15 }}
-          className="glass-card p-4 glow-red"
+          className="summary-card glow-red"
         >
-          <div className="flex items-center gap-2 mb-2">
+          <div className="summary-card-header">
             <TrendingDown className="w-4 h-4" style={{ color: "var(--color-danger)" }} />
-            <span className="text-xs font-medium" style={{ color: "var(--color-text-secondary)" }}>
-              You owe
-            </span>
+            <span className="summary-card-title">You owe</span>
           </div>
           <p className="text-xl font-bold balance-negative">
             {formatCurrency(totalOwe)}
@@ -188,7 +181,7 @@ export default function DashboardPage() {
 
       {/* Groups List */}
       <div>
-        <h2 className="text-lg font-semibold mb-3">Your Groups</h2>
+        <h2 className="groups-section-title">Your Groups</h2>
 
         {groups.length === 0 ? (
           <motion.div
@@ -210,7 +203,7 @@ export default function DashboardPage() {
           </motion.div>
         ) : (
           <AnimatePresence>
-            <div className="space-y-3">
+            <div className="group-list-container">
               {groups.map((group, i) => {
                 const myBalance = getMyBalance(group.id);
                 const isTrip = group.type === "TRIP";
@@ -222,7 +215,7 @@ export default function DashboardPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     onClick={() => router.push(`/groups/${group.id}`)}
-                    className="glass-card glass-card-hover cursor-pointer overflow-hidden"
+                    className="glass-card glass-card-hover group-card"
                   >
                     {/* Accent banner */}
                     <div
@@ -231,34 +224,34 @@ export default function DashboardPage() {
                     />
 
                     <div className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
+                      <div className="group-card-header">
+                        <div className="group-card-info">
                           <div
-                            className="w-11 h-11 rounded-xl flex items-center justify-center text-lg"
+                            className="group-card-icon"
                             style={{ background: `${group.accentColor}22` }}
                           >
                             {group.emoji}
                           </div>
                           <div>
-                            <h3 className="font-semibold flex items-center gap-2">
+                            <h3 className="group-card-title">
                               {group.name}
                               {isTrip && (
-                                <span className="chip text-[10px]">
+                                <span className="chip">
                                   <Plane className="w-3 h-3" /> Trip
                                 </span>
                               )}
                             </h3>
-                            <div className="flex items-center gap-2 mt-0.5">
+                            <div className="group-card-meta">
                               <Users className="w-3 h-3" style={{ color: "var(--color-text-muted)" }} />
-                              <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+                              <span className="group-card-meta-text">
                                 {group.memberCount} members · {group.expenseCount} expenses
                               </span>
                             </div>
                           </div>
                         </div>
 
-                        <div className="text-right">
-                          <p className={`text-lg font-bold ${
+                        <div className="group-card-balance">
+                          <p className={`group-card-balance-amount ${
                             myBalance > 0.01
                               ? "balance-positive"
                               : myBalance < -0.01
@@ -271,7 +264,7 @@ export default function DashboardPage() {
                               ? `-${formatCurrency(Math.abs(myBalance))}`
                               : "settled ✓"}
                           </p>
-                          <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-muted)" }}>
+                          <p className="group-card-balance-label">
                             {myBalance > 0.01 ? "you're owed" : myBalance < -0.01 ? "you owe" : "all clear"}
                           </p>
                         </div>
@@ -282,12 +275,8 @@ export default function DashboardPage() {
                         {group.members.slice(0, 5).map((member) => (
                           <div
                             key={member.id}
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border-2"
-                            style={{
-                              background: "var(--color-surface-hover)",
-                              borderColor: "var(--color-surface-card)",
-                              color: "var(--color-text-secondary)",
-                            }}
+                            className="user-avatar"
+                            style={{ width: '1.75rem', height: '1.75rem', fontSize: '0.625rem' }}
                             title={member.name}
                           >
                             {getInitials(member.name)}
@@ -295,12 +284,8 @@ export default function DashboardPage() {
                         ))}
                         {group.memberCount > 5 && (
                           <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border-2"
-                            style={{
-                              background: "var(--color-surface-hover)",
-                              borderColor: "var(--color-surface-card)",
-                              color: "var(--color-text-muted)",
-                            }}
+                            className="user-avatar"
+                            style={{ width: '1.75rem', height: '1.75rem', fontSize: '0.625rem', color: "var(--color-text-muted)" }}
                           >
                             +{group.memberCount - 5}
                           </div>

@@ -62,6 +62,9 @@
 }
 
 @layer components {
+  /* ==================================================== */
+  /* Reusable UI Components */
+  /* ==================================================== */
   .glass-card {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
     backdrop-filter: blur(16px);
@@ -99,6 +102,7 @@
     background: rgba(0, 0, 0, 0.3);
   }
 
+  /* Buttons */
   .btn {
     display: inline-flex;
     align-items: center;
@@ -156,33 +160,250 @@
     border-radius: 0.5rem;
   }
 
-  .fab {
-    position: fixed;
-    bottom: 5.5rem;
-    right: 1.5rem;
-    width: 3.5rem;
-    height: 3.5rem;
-    border-radius: 1rem;
-    background: linear-gradient(135deg, var(--color-brand-500), var(--color-brand-600));
-    color: white;
+  /* ==================================================== */
+  /* Semantic HTML Application Layout                     */
+  /* ==================================================== */
+  .app-layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-surface);
+  }
+
+  .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    padding: 1rem 1rem;
     display: flex;
     align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 20px rgba(114, 31, 280, 0.4), 0 0 0 1px rgba(255,255,255,0.2) inset;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 40;
+    justify-content: space-between;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
     backdrop-filter: blur(10px);
   }
 
-  .fab:hover {
-    transform: translateY(-4px) scale(1.05);
-    box-shadow: 0 12px 25px rgba(114, 31, 280, 0.6), 0 0 0 1px rgba(255,255,255,0.3) inset;
+  .header-logo-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 
-  .fab:active {
-    transform: translateY(0) scale(0.95);
+  .header-logo-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-brand-400), var(--color-brand-600));
+    box-shadow: 0 0 15px rgba(114,31,280,0.5);
   }
 
+  .header-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(90deg, #fff, var(--color-brand-400));
+  }
+
+  .user-avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    background: rgba(255,255,255,0.05);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 10px rgba(255,255,255,0.1);
+  }
+
+  .main-container {
+    flex: 1 1 0%;
+    padding-bottom: 7rem;
+    overflow-y: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Dock Navigation */
+  .dock-wrapper {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    width: 90%;
+    max-width: 24rem;
+  }
+
+  .dock-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0.75rem 1rem;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(20, 20, 25, 0.65);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  .dock-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    transition: all 0.2s;
+  }
+
+  .dock-fab {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -2rem;
+    transition: transform 0.2s;
+    background: linear-gradient(135deg, var(--color-brand-400), var(--color-brand-600));
+    box-shadow: 0 8px 20px rgba(114,31,280,0.5);
+  }
+  .dock-fab:hover { transform: scale(1.05); }
+  .dock-fab:active { transform: scale(0.95); }
+
+  .dock-icon-btn {
+    position: relative;
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+    transition: background-color 0.2s;
+  }
+  .dock-icon-btn:hover { background-color: rgba(255, 255, 255, 0.05); }
+
+  /* Dashboard View */
+  .dashboard-wrapper {
+    padding: 1rem;
+    max-width: 32rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .dashboard-greeting-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  
+  .dashboard-greeting-subtitle {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    color: var(--color-text-secondary);
+  }
+
+  .summary-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .summary-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .summary-card-title {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+
+  .groups-section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+
+  .group-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .group-card {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .group-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .group-card-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .group-card-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+  }
+
+  .group-card-title {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .group-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.125rem;
+  }
+
+  .group-card-meta-text {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+
+  .group-card-balance {
+    text-align: right;
+  }
+
+  .group-card-balance-amount {
+    font-size: 1.125rem;
+    font-weight: 700;
+  }
+
+  .group-card-balance-label {
+    font-size: 0.625rem;
+    margin-top: 0.125rem;
+    color: var(--color-text-muted);
+  }
+
+  /* Miscellaneous Helpers */
   .chip {
     display: inline-flex;
     align-items: center;
@@ -197,10 +418,6 @@
     transition: all 0.2s;
   }
 
-  .chip:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
   .skeleton {
     animation: shimmer 2s infinite;
     background: linear-gradient(
@@ -213,7 +430,6 @@
     border-radius: 0.75rem;
   }
 
-  /* Utility text colors for balances */
   .balance-positive {
     color: var(--color-success);
     text-shadow: 0 0 10px rgba(112, 197, 89, 0.3);
@@ -226,7 +442,6 @@
     color: var(--color-text-muted);
   }
 
-  /* Deep glows for the summary cards */
   .glow-green {
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(112, 197, 89, 0.05);
     border: 1px solid rgba(112, 197, 89, 0.2);
@@ -237,7 +452,6 @@
     border: 1px solid rgba(236, 72, 153, 0.2);
   }
 
-  /* Gradients for banners */
   .trip-banner {
     background: linear-gradient(135deg, oklch(0.55 0.22 35 / 0.8), oklch(0.45 0.20 20 / 0.8));
     backdrop-filter: blur(12px);
@@ -250,7 +464,6 @@
   100% { background-position: -200% 0; }
 }
 
-/* Hide scrollbar for clean UI */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
