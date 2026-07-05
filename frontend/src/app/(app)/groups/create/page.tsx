@@ -6,6 +6,11 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { GROUP_EMOJIS, ACCENT_COLORS } from "@/lib/utils";
 import { ArrowLeft, Sparkles, Plane, RefreshCw, Calendar } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const SplitText = dynamic(() => import("@/components/SplitText"), {
+  ssr: false,
+});
 
 export default function CreateGroupPage() {
   const router = useRouter();
@@ -32,33 +37,41 @@ export default function CreateGroupPage() {
       });
 
       if (res.ok) {
-        const group = await res.json();
-        toast.success("Group created! 🎉 Share the invite code with friends.");
-        router.push(`/groups/${group.id}`);
+        const data = await res.json();
+        toast.success("Group created! 🎉");
+        router.push(`/groups/${data.id}`);
       } else {
         const data = await res.json();
         toast.error(data.error || "Failed to create group");
       }
     } catch {
-      toast.error("Something went wrong");
+      toast.error("Failed to create group");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="p-4 max-w-lg mx-auto">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <button
-          onClick={() => router.back()}
-          className="btn btn-ghost mb-4 -ml-2"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
+    <div className="max-w-md mx-auto mt-8 p-4 pb-24">
+      <button
+        onClick={() => router.back()}
+        className="btn-ghost flex items-center gap-2 mb-8 text-sm"
+      >
+        <ArrowLeft className="w-4 h-4" /> Back
+      </button>
 
-        <h1 className="text-2xl font-bold mb-1">Create a Group</h1>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <SplitText
+          text="Create a Group"
+          className="text-2xl font-bold mb-1"
+          delay={30}
+          duration={0.4}
+          splitType="chars"
+          textAlign="left"
+          tag="h1"
+        />
         <p className="text-sm mb-6" style={{ color: "var(--color-text-secondary)" }}>
-          Start splitting expenses with your crew 🤙
+          Start splitting expenses with your crew ✌️
         </p>
       </motion.div>
 

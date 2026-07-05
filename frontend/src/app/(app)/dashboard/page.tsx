@@ -14,6 +14,11 @@ import {
   RefreshCw,
   Wallet,
 } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const SplitText = dynamic(() => import("@/components/SplitText"), {
+  ssr: false,
+});
 
 type GroupData = {
   id: string;
@@ -138,9 +143,15 @@ export default function DashboardPage() {
     <div className="dashboard-wrapper">
       {/* Greeting */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="dashboard-greeting-title">
-          Hey, {session.user.name.split(" ")[0]} 👋
-        </h1>
+        <SplitText
+          text={`Hey, ${session.user.name.split(" ")[0]} 👋`}
+          className="dashboard-greeting-title"
+          delay={40}
+          duration={0.4}
+          splitType="chars"
+          textAlign="left"
+          tag="h1"
+        />
         <p className="dashboard-greeting-subtitle">
           Here&apos;s your balance overview
         </p>

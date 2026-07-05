@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { ArrowLeft, UserPlus, Ticket } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const SplitText = dynamic(() => import("@/components/SplitText"), {
+  ssr: false,
+});
 
 export default function JoinGroupPage() {
   const router = useRouter();
@@ -49,7 +54,15 @@ export default function JoinGroupPage() {
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
 
-        <h1 className="text-2xl font-bold mb-1">Join a Group</h1>
+        <SplitText
+          text="Join a Group"
+          className="text-2xl font-bold mb-1"
+          delay={30}
+          duration={0.4}
+          splitType="chars"
+          textAlign="left"
+          tag="h1"
+        />
         <p className="text-sm mb-6" style={{ color: "var(--color-text-secondary)" }}>
           Got an invite code? Enter it below to join your friends 🤝
         </p>
