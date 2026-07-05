@@ -187,6 +187,13 @@ const GooeyNav = ({
 
   return (
     <>
+      <svg width="0" height="0" className="absolute hidden">
+        <filter id="gooey">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur" />
+          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="gooey" />
+          <feComposite in="SourceGraphic" in2="gooey" operator="atop" />
+        </filter>
+      </svg>
       <style>
         {`
           :root {
@@ -214,15 +221,14 @@ const GooeyNav = ({
             color: white;
           }
           .gooey-effect.gooey-filter {
-            filter: blur(7px) contrast(100) blur(0);
-            mix-blend-mode: multiply;
+            filter: url('#gooey');
           }
           .gooey-effect.gooey-filter::before {
             content: "";
             position: absolute;
             inset: -75px;
             z-index: -2;
-            background: white;
+            background: transparent;
           }
           .gooey-effect.gooey-filter::after {
             content: "";
@@ -333,7 +339,7 @@ const GooeyNav = ({
       </style>
       <div className="relative" ref={containerRef}>
         <nav
-          className="flex relative"
+          className="flex relative z-[10]"
           style={{ transform: 'translate3d(0,0,0.01px)' }}
         >
           <ul
