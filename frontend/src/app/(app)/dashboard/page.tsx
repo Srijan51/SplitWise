@@ -203,7 +203,7 @@ export default function DashboardPage() {
             animate={{ opacity: 1 }}
             className="glass-card p-8 text-center"
           >
-            <div className="text-4xl mb-3">🫂</div>
+            <div className="text-4xl mb-3">👥</div>
             <h3 className="font-semibold mb-1">No groups yet</h3>
             <p className="text-sm mb-4" style={{ color: "var(--color-text-secondary)" }}>
               Create a group with your friends and start splitting expenses!
