@@ -5,6 +5,15 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Mail, Lock, User, ArrowRight, Sparkles } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const Antigravity = dynamic(() => import("@/components/Antigravity"), {
+  ssr: false,
+});
+
+const SplitText = dynamic(() => import("@/components/SplitText"), {
+  ssr: false,
+});
 
 export default function LoginPage() {
   const router = useRouter();
@@ -62,22 +71,34 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background gradient orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, oklch(0.58 0.2 260), transparent)" }} />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full opacity-15"
-          style={{ background: "radial-gradient(circle, oklch(0.72 0.19 142), transparent)" }} />
-        <div className="absolute top-1/3 left-1/2 w-64 h-64 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, oklch(0.65 0.18 70), transparent)" }} />
+    <div
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+      style={{
+        background: "linear-gradient(135deg, #f0e6ff 0%, #e8f0fe 30%, #fce4ec 60%, #f3e5f5 100%)",
+      }}
+    >
+      {/* Antigravity particle background — needs pointer events for canvas rendering */}
+      <div className="absolute inset-0" style={{ zIndex: 0 }}>
+        <Antigravity
+          count={200}
+          magnetRadius={6}
+          ringRadius={7}
+          waveSpeed={0.4}
+          waveAmplitude={1}
+          particleSize={1.2}
+          lerpSpeed={0.05}
+          color="#b388ff"
+          autoAnimate={true}
+          particleVariance={0.8}
+        />
       </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-md relative z-10"
+        className="w-full max-w-md relative"
+        style={{ zIndex: 10 }}
       >
         {/* Logo & Title */}
         <div className="text-center mb-8">
@@ -86,51 +107,75 @@ export default function LoginPage() {
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
             className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"
-            style={{ background: "linear-gradient(135deg, var(--color-brand-500), var(--color-brand-600))" }}
+            style={{
+              background: "linear-gradient(135deg, #7c4dff, #e040fb)",
+              boxShadow: "0 8px 32px rgba(124, 77, 255, 0.3)",
+            }}
           >
             <Sparkles className="w-8 h-8 text-white" />
           </motion.div>
-          <h1 className="text-3xl font-bold tracking-tight" style={{ color: "var(--color-text-primary)" }}>
-            Split<span style={{ color: "var(--color-brand-400)" }}>Wise</span>
+          <h1
+            className="text-3xl font-bold tracking-tight"
+            style={{ color: "#1a1a2e" }}
+          >
+            Split<span style={{ color: "#7c4dff" }}>Wise</span>
           </h1>
-          <p className="mt-2 text-sm" style={{ color: "var(--color-text-secondary)" }}>
-            Split bills, not friendships ✌️
-          </p>
+          <div className="mt-2">
+            <SplitText
+              text="Split bills, not friendships ✌️"
+              className="text-sm"
+              delay={30}
+              duration={0.5}
+              splitType="chars"
+              textAlign="center"
+              tag="p"
+            />
+          </div>
         </div>
 
         {/* Card */}
-        <div className="glass-card p-6">
+        <div
+          className="p-6 rounded-2xl"
+          style={{
+            background: "rgba(255, 255, 255, 0.7)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            border: "1px solid rgba(255, 255, 255, 0.8)",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)",
+          }}
+        >
           {/* Toggle */}
-          <div className="flex rounded-xl p-1 mb-6" style={{ background: "var(--color-surface)" }}>
+          <div
+            className="flex rounded-xl p-1 mb-6"
+            style={{ background: "rgba(0, 0, 0, 0.04)" }}
+          >
             <button
               onClick={() => setIsLogin(true)}
-              className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all ${
+              className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all"
+              style={
                 isLogin
-                  ? "text-white shadow-md"
-                  : "hover:opacity-80"
-              }`}
-              style={isLogin ? {
-                background: "linear-gradient(135deg, var(--color-brand-500), var(--color-brand-600))",
-                color: "white",
-              } : {
-                color: "var(--color-text-muted)",
-              }}
+                  ? {
+                      background: "linear-gradient(135deg, #7c4dff, #e040fb)",
+                      color: "white",
+                      boxShadow: "0 4px 12px rgba(124, 77, 255, 0.3)",
+                    }
+                  : { color: "#666" }
+              }
             >
               Sign In
             </button>
             <button
               onClick={() => setIsLogin(false)}
-              className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all ${
+              className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all"
+              style={
                 !isLogin
-                  ? "text-white shadow-md"
-                  : "hover:opacity-80"
-              }`}
-              style={!isLogin ? {
-                background: "linear-gradient(135deg, var(--color-brand-500), var(--color-brand-600))",
-                color: "white",
-              } : {
-                color: "var(--color-text-muted)",
-              }}
+                  ? {
+                      background: "linear-gradient(135deg, #7c4dff, #e040fb)",
+                      color: "white",
+                      boxShadow: "0 4px 12px rgba(124, 77, 255, 0.3)",
+                    }
+                  : { color: "#666" }
+              }
             >
               Sign Up
             </button>
@@ -144,17 +189,28 @@ export default function LoginPage() {
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
               >
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)" }}>
+                <label
+                  className="block text-xs font-medium mb-1.5"
+                  style={{ color: "#555" }}
+                >
                   Your Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--color-text-muted)" }} />
+                  <User
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                    style={{ color: "#999" }}
+                  />
                   <input
                     type="text"
                     placeholder="What should we call you?"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="input-base pl-10"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none transition-all"
+                    style={{
+                      background: "rgba(0, 0, 0, 0.03)",
+                      border: "1px solid rgba(0, 0, 0, 0.08)",
+                      color: "#1a1a2e",
+                    }}
                     required={!isLogin}
                   />
                 </div>
@@ -163,17 +219,28 @@ export default function LoginPage() {
 
             {/* Email */}
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)" }}>
+              <label
+                className="block text-xs font-medium mb-1.5"
+                style={{ color: "#555" }}
+              >
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--color-text-muted)" }} />
+                <Mail
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                  style={{ color: "#999" }}
+                />
                 <input
                   type="email"
                   placeholder="your@email.com"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="input-base pl-10"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none transition-all"
+                  style={{
+                    background: "rgba(0, 0, 0, 0.03)",
+                    border: "1px solid rgba(0, 0, 0, 0.08)",
+                    color: "#1a1a2e",
+                  }}
                   required
                 />
               </div>
@@ -181,17 +248,30 @@ export default function LoginPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)" }}>
+              <label
+                className="block text-xs font-medium mb-1.5"
+                style={{ color: "#555" }}
+              >
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--color-text-muted)" }} />
+                <Lock
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                  style={{ color: "#999" }}
+                />
                 <input
                   type="password"
                   placeholder="••••••••"
                   value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="input-base pl-10"
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
+                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none transition-all"
+                  style={{
+                    background: "rgba(0, 0, 0, 0.03)",
+                    border: "1px solid rgba(0, 0, 0, 0.08)",
+                    color: "#1a1a2e",
+                  }}
                   required
                   minLength={6}
                 />
@@ -202,7 +282,11 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn btn-primary w-full mt-2"
+              className="w-full mt-2 py-3 px-6 rounded-xl text-sm font-semibold text-white transition-all flex items-center justify-center gap-2"
+              style={{
+                background: "linear-gradient(135deg, #7c4dff, #e040fb)",
+                boxShadow: "0 4px 15px rgba(124, 77, 255, 0.35)",
+              }}
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -216,10 +300,14 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-xs mt-6" style={{ color: "var(--color-text-muted)" }}>
+        <p
+          className="text-center text-xs mt-6"
+          style={{ color: "#888" }}
+        >
           Made with ❤️ for friends who split bills
         </p>
       </motion.div>
     </div>
   );
 }
+

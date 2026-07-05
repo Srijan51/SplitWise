@@ -2,30 +2,42 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import {
-  LayoutDashboard,
-  Users,
-  PlusCircle,
-  BarChart3,
   LogOut,
   Sparkles,
-  Wallet
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
+import dynamic from "next/dynamic";
+
+const GooeyNav = dynamic(() => import("@/components/GooeyNav"), {
+  ssr: false,
+});
+
+const Antigravity = dynamic(() => import("@/components/Antigravity"), {
+  ssr: false,
+});
 
 const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
-  { href: "/groups/join", icon: Users, label: "Join" },
-  { href: "/groups/create", icon: PlusCircle, label: "Create" },
-  { href: "/profile", icon: Wallet, label: "Profile" },
+  { label: "Home", href: "/dashboard" },
+  { label: "Join", href: "/groups/join" },
+  { label: "Create", href: "/groups/create" },
+  { label: "Profile", href: "/profile" },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  
+
   // Hardcoded mock user to bypass login for now
   const user = { name: "Alice", email: "alice@example.com" };
+
+  const initialActiveIndex = Math.max(
+    0,
+    navItems.findIndex(
+      (item) =>
+        pathname === item.href ||
+        (item.href !== "/dashboard" && pathname.startsWith(item.href))
+    )
+  );
 
   const handleLogout = () => {
     document.cookie = "token=; path=/; max-age=0";
@@ -34,6 +46,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="app-layout">
+      {/* Antigravity particle background */}
+      <div className="absolute inset-0" style={{ zIndex: 0 }}>
+        <Antigravity
+          count={200}
+          magnetRadius={6}
+          ringRadius={7}
+          waveSpeed={0.4}
+          waveAmplitude={1}
+          particleSize={1.2}
+          lerpSpeed={0.05}
+          color="#b388ff"
+          autoAnimate={true}
+          particleVariance={0.8}
+        />
+      </div>
+
       {/* Top Header */}
       <header className="app-header">
         <Link href="/dashboard" className="header-logo-container">
@@ -60,45 +88,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      {/* Glassmorphism Dock */}
+      {/* GooeyNav Dock */}
       <div className="dock-wrapper">
-        <nav className="dock-container">
-          {navItems.map((item, i) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/dashboard" && pathname.startsWith(item.href));
-            const Icon = item.icon;
-            
-            // Make the middle button a primary FAB
-            const isCenter = i === 2;
-
-            return (
-              <Link key={item.href} href={item.href} className="dock-item">
-                {isCenter ? (
-                  <div className="dock-fab">
-                    <Icon className="w-7 h-7 text-white" />
-                  </div>
-                ) : (
-                  <div className="dock-icon-btn">
-                    <Icon
-                      className={`w-6 h-6 transition-colors ${isActive ? 'drop-shadow-[0_0_8px_var(--color-brand-400)]' : ''}`}
-                      style={{ color: isActive ? "var(--color-brand-400)" : "var(--color-text-muted)" }}
-                    />
-                    {isActive && (
-                      <motion.div
-                        layoutId="dock-indicator"
-                        className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
-                        style={{ background: "var(--color-brand-400)", boxShadow: "0 0 8px var(--color-brand-400)" }}
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      />
-                    )}
-                  </div>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="dock-container justify-center">
+          <GooeyNav
+            items={navItems}
+            particleCount={15}
+            particleDistances={[90, 10]}
+            particleR={100}
+            initialActiveIndex={initialActiveIndex}
+            animationTime={600}
+            timeVariance={300}
+            colors={[1, 2, 3, 1, 2, 3, 1, 4]}
+          />
+        </div>
       </div>
     </div>
   );
 }
+
