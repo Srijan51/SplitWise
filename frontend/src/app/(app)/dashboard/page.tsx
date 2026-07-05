@@ -143,15 +143,18 @@ export default function DashboardPage() {
     <div className="dashboard-wrapper">
       {/* Greeting */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <SplitText
-          text={`Hey, ${session.user.name.split(" ")[0]} 👋`}
-          className="dashboard-greeting-title"
-          delay={40}
-          duration={0.4}
-          splitType="chars"
-          textAlign="left"
-          tag="h1"
-        />
+        <div className="flex items-center gap-2">
+          <SplitText
+            text={`Hey, ${session.user.name.split(" ")[0]}`}
+            className="dashboard-greeting-title"
+            delay={40}
+            duration={0.4}
+            splitType="chars"
+            textAlign="left"
+            tag="h1"
+          />
+          <span className="text-2xl">👋</span>
+        </div>
         <p className="dashboard-greeting-subtitle">
           Here&apos;s your balance overview
         </p>

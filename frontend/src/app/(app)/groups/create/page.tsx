@@ -193,18 +193,18 @@ export default function CreateGroupPage() {
           <div className="flex flex-wrap gap-2">
             {ACCENT_COLORS.map((color) => (
               <button
-                key={color.value}
+                key={color}
                 type="button"
-                onClick={() => setForm({ ...form, accentColor: color.value })}
+                onClick={() => setForm({ ...form, accentColor: color })}
                 className={`w-8 h-8 rounded-full transition-all ${
-                  form.accentColor === color.value ? "ring-2 ring-offset-2 scale-110" : ""
+                  form.accentColor === color ? "ring-2 ring-offset-2 scale-110" : ""
                 }`}
                 style={{
-                  background: color.value,
-                  ringColor: color.value,
-                  ringOffsetColor: "var(--color-surface)",
-                }}
-                title={color.label}
+                  background: color,
+                  "--tw-ring-color": color,
+                  "--tw-ring-offset-color": "var(--color-surface)",
+                } as React.CSSProperties}
+                title={color}
               />
             ))}
           </div>
