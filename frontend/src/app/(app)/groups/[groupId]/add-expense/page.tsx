@@ -204,7 +204,7 @@ export default function AddExpensePage({
   const getMemberName = (id: string) => members.find((m) => m.user.id === id)?.user.name || "Unknown";
 
   return (
-    <div className="p-4 max-w-lg mx-auto pb-10">
+    <div className="p-4 responsive-container-lg pb-10">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between items-start mb-6">
         <div>
           <button onClick={() => router.back()} className="btn btn-ghost mb-4 -ml-2">

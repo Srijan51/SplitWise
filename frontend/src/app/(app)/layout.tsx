@@ -5,6 +5,10 @@ import { usePathname } from "next/navigation";
 import {
   LogOut,
   Sparkles,
+  Home,
+  UserPlus,
+  PlusCircle,
+  User,
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import dynamic from "next/dynamic";
@@ -18,11 +22,17 @@ const Antigravity = dynamic(() => import("@/components/Antigravity"), {
 });
 
 const navItems = [
-  { label: "Home", href: "/dashboard" },
-  { label: "Join", href: "/groups/join" },
-  { label: "Create", href: "/groups/create" },
-  { label: "Profile", href: "/profile" },
+  { label: "Home", href: "/dashboard", icon: Home },
+  { label: "Join Group", href: "/groups/join", icon: UserPlus },
+  { label: "Create Group", href: "/groups/create", icon: PlusCircle },
+  { label: "Profile", href: "/profile", icon: User },
 ];
+
+// Labels for the bottom dock (shorter)
+const dockItems = navItems.map((item) => ({
+  label: item.label.split(" ")[0], // "Home", "Join", "Create", "Profile"
+  href: item.href,
+}));
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -38,6 +48,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         (item.href !== "/dashboard" && pathname.startsWith(item.href))
     )
   );
+
+  const isActive = (href: string) =>
+    pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
 
   const handleLogout = () => {
     document.cookie = "token=; path=/; max-age=0";
@@ -56,11 +69,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           waveAmplitude={1}
           particleSize={1.2}
           lerpSpeed={0.05}
-          color="#b388ff"
+          color="#a1a1aa"
           autoAnimate={true}
           particleVariance={0.8}
         />
       </div>
+
+
 
       {/* Top Header */}
       <header className="app-header">
@@ -88,11 +103,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      {/* GooeyNav Dock */}
+      {/* GooeyNav Dock (mobile/tablet only — hidden on desktop via CSS) */}
       <div className="dock-wrapper">
         <div className="dock-container justify-center">
           <GooeyNav
-            items={navItems}
+            items={dockItems}
             particleCount={15}
             particleDistances={[90, 10]}
             particleR={100}
@@ -106,4 +121,3 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-

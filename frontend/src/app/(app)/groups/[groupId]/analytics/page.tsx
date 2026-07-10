@@ -91,7 +91,7 @@ export default function AnalyticsPage({
     .sort((a, b) => b.total - a.total);
 
   return (
-    <div className="p-4 max-w-lg mx-auto pb-10">
+    <div className="p-4 responsive-container-lg pb-10">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <button onClick={() => router.back()} className="btn btn-ghost mb-4 -ml-2">
           <ArrowLeft className="w-4 h-4" /> Back
@@ -111,7 +111,7 @@ export default function AnalyticsPage({
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="analytics-grid">
           {/* Category Breakdown */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -159,13 +159,13 @@ export default function AnalyticsPage({
             </div>
           </motion.div>
 
-          {/* Spend Over Time */}
+          {/* Spend Over Time — full width on desktop */}
           {timeData.length > 1 && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="glass-card p-4"
+              className="glass-card p-4 analytics-full-width"
             >
               <h3 className="text-sm font-semibold mb-3">Spend Over Time</h3>
               <div className="h-48">
@@ -227,8 +227,8 @@ export default function AnalyticsPage({
             </div>
           </motion.div>
 
-          {/* Total Stats */}
-          <div className="glass-card p-4">
+          {/* Total Stats — full width on desktop */}
+          <div className="glass-card p-4 analytics-full-width">
             <h3 className="text-sm font-semibold mb-2">Quick Stats</h3>
             <div className="grid grid-cols-3 gap-3 text-center">
               <div>

@@ -52,7 +52,7 @@ export default function CreateGroupPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-4 pb-24">
+    <div className="responsive-container-md mt-8 p-4 pb-24">
       <button
         onClick={() => router.back()}
         className="btn-ghost flex items-center gap-2 mb-8 text-sm"

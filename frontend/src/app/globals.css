@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #f0e6ff;
+  --color-background: #f4f4f5;
   --color-surface: rgba(255, 255, 255, 0.7);
   --color-surface-hover: rgba(255, 255, 255, 0.9);
   --color-surface-card: rgba(255, 255, 255, 0.7);
-  --color-border: rgba(255, 255, 255, 0.8);
+  --color-border: rgba(0, 0, 0, 0.1);
   
-  --color-text-primary: #1a1a2e;
-  --color-text-secondary: #555555;
-  --color-text-muted: #888888;
+  --color-text-primary: #09090b;
+  --color-text-secondary: #52525b;
+  --color-text-muted: #a1a1aa;
   
-  --color-brand-400: #e040fb; /* Neon Pink */
-  --color-brand-500: #7c4dff; /* Deep Purple */
-  --color-brand-600: #5e35b1; /* Dark Purple */
+  --color-brand-400: #52525b; /* Zinc 500 */
+  --color-brand-500: #09090b; /* Zinc 950 */
+  --color-brand-600: #000000; /* Black */
 
   --color-success: #22c55e;
   --color-danger: #ef4444;
@@ -22,7 +22,7 @@
 
 @layer base {
   body {
-    background: linear-gradient(135deg, #f0e6ff 0%, #e8f0fe 30%, #fce4ec 60%, #f3e5f5 100%);
+    background: linear-gradient(135deg, #ffffff 0%, #f4f4f5 50%, #e4e4e7 100%);
     background-attachment: fixed;
     color: var(--color-text-primary);
     overflow-x: hidden;
@@ -437,9 +437,229 @@
   }
 
   .trip-banner {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.8), rgba(234, 88, 12, 0.8));
+    background: linear-gradient(135deg, rgba(9, 9, 11, 0.8), rgba(0, 0, 0, 0.8));
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  /* FAB (Floating Action Button) */
+  .fab {
+    position: fixed;
+    bottom: 7rem;
+    right: 1.5rem;
+    z-index: 40;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    background: linear-gradient(135deg, var(--color-brand-500), var(--color-brand-400));
+    box-shadow: 0 8px 24px rgba(124, 77, 255, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+  .fab:hover {
+    transform: scale(1.08);
+    box-shadow: 0 10px 30px rgba(124, 77, 255, 0.5);
+  }
+  .fab:active {
+    transform: scale(0.95);
+  }
+
+  /* ==================================================== */
+  /* Desktop Sidebar Navigation                           */
+  /* ==================================================== */
+  .desktop-sidebar {
+    display: none; /* Hidden on mobile */
+  }
+
+  /* Responsive content wrapper — used by inner pages */
+  .responsive-container {
+    max-width: 32rem;
+    margin: 0 auto;
+  }
+
+  .responsive-container-md {
+    max-width: 28rem;
+    margin: 0 auto;
+  }
+
+  .responsive-container-lg {
+    max-width: 32rem;
+    margin: 0 auto;
+  }
+
+  /* Group list responsive grid */
+  .group-list-responsive {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  /* Analytics chart grid */
+  .analytics-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+
+/* ==================================================== */
+/* RESPONSIVE: Tablet (≥768px)                          */
+/* ==================================================== */
+@media (min-width: 768px) {
+  .app-header {
+    padding: 1rem 2rem;
+  }
+
+  .main-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .dashboard-wrapper {
+    max-width: 42rem;
+    padding: 1.5rem;
+    gap: 2rem;
+  }
+
+  .dashboard-greeting-title {
+    font-size: 1.75rem;
+  }
+
+  .summary-cards-grid {
+    gap: 1rem;
+  }
+
+  .summary-card {
+    padding: 1.25rem;
+  }
+
+  .responsive-container {
+    max-width: 42rem;
+  }
+
+  .responsive-container-md {
+    max-width: 36rem;
+  }
+
+  .responsive-container-lg {
+    max-width: 42rem;
+  }
+
+  .dock-wrapper {
+    max-width: 28rem;
+  }
+
+  .glass-card {
+    padding: inherit;
+  }
+
+  .group-list-responsive {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .fab {
+    bottom: 7.5rem;
+    right: 2rem;
+  }
+}
+
+/* ==================================================== */
+/* RESPONSIVE: Desktop (≥1024px)                        */
+/* ==================================================== */
+@media (min-width: 1024px) {
+  /* Shift header + main content for sidebar */
+  .app-header {
+    padding: 1rem 2.5rem;
+  }
+
+  .main-container {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+    padding-bottom: 8rem;
+  }
+
+
+
+  /* Wider containers on desktop */
+  .dashboard-wrapper {
+    max-width: 64rem;
+    padding: 2rem;
+  }
+
+  .dashboard-greeting-title {
+    font-size: 2rem;
+  }
+
+  .summary-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+
+  .summary-card {
+    padding: 1.5rem;
+  }
+
+  .responsive-container {
+    max-width: 64rem;
+  }
+
+  .responsive-container-md {
+    max-width: 40rem;
+  }
+
+  .responsive-container-lg {
+    max-width: 56rem;
+  }
+
+  .group-list-responsive {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+
+  .groups-section-title {
+    font-size: 1.25rem;
+  }
+
+  /* Analytics: 2-col grid on desktop */
+  .analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .analytics-grid > .analytics-full-width {
+    grid-column: 1 / -1;
+  }
+
+  .fab {
+    bottom: 2.5rem;
+    right: 2.5rem;
+    width: 4rem;
+    height: 4rem;
+  }
+}
+
+/* ==================================================== */
+/* RESPONSIVE: Wide Desktop (≥1280px)                   */
+/* ==================================================== */
+@media (min-width: 1280px) {
+  .dashboard-wrapper {
+    max-width: 72rem;
+  }
+
+  .responsive-container {
+    max-width: 72rem;
+  }
+
+  .group-list-responsive {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 

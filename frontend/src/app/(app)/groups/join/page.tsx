@@ -48,7 +48,7 @@ export default function JoinGroupPage() {
   };
 
   return (
-    <div className="p-4 max-w-lg mx-auto">
+    <div className="p-4 responsive-container-lg">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <button onClick={() => router.back()} className="btn btn-ghost mb-4 -ml-2">
           <ArrowLeft className="w-4 h-4" /> Back

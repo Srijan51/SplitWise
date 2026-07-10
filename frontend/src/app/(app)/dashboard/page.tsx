@@ -217,7 +217,7 @@ export default function DashboardPage() {
           </motion.div>
         ) : (
           <AnimatePresence>
-            <div className="group-list-container">
+            <div className="group-list-responsive">
               {groups.map((group, i) => {
                 const myBalance = getMyBalance(group.id);
                 const isTrip = group.type === "TRIP";

@@ -175,7 +175,7 @@ export default function GroupDetailPage({
   );
 
   return (
-    <div className="max-w-lg mx-auto">
+    <div className="responsive-container-lg">
       {/* Header */}
       <div
         className={`relative px-4 pt-4 pb-6 ${isTrip ? "trip-banner" : ""}`}
