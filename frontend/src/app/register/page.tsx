@@ -59,11 +59,11 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen w-full relative flex flex-col bg-[#fdfaf5] overflow-hidden sm:items-center sm:justify-center">
       <div className="w-full max-w-lg bg-[#fdfaf5] min-h-screen relative shadow-2xl overflow-x-hidden flex flex-col">
-        
+
         {/* Back Button */}
         <div className="absolute top-6 left-6 z-30">
-          <button 
-            onClick={() => router.back()} 
+          <button
+            onClick={() => router.back()}
             className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors"
           >
             <ChevronLeft className="w-5 h-5 text-gray-800" />
@@ -74,11 +74,13 @@ export default function RegisterPage() {
         <div className="relative pt-16 pb-6 px-6 z-20 flex items-center h-[260px]">
           {/* Hero Illustration Left */}
           <div className="w-1/2 h-full relative -ml-4">
-             <div className="absolute inset-0 bg-no-repeat" style={{ 
-              backgroundImage: "url('/register-hero.png')", 
-              backgroundSize: 'contain', 
-              backgroundPosition: 'center left', 
+            <div className="absolute inset-0 bg-no-repeat" style={{
+              backgroundImage: "url('/register-hero.png')",
+              backgroundSize: 'contain',
+              backgroundPosition: 'center left',
               mixBlendMode: 'multiply',
+              WebkitMaskImage: 'radial-gradient(closest-side, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',
+              maskImage: 'radial-gradient(closest-side, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)'
             }} />
           </div>
 
@@ -90,7 +92,7 @@ export default function RegisterPage() {
                 <div className="w-3.5 h-3.5 rounded-full bg-[#528f80]"></div>
               </div>
             </div>
-            
+
             <h1 className="text-[2rem] font-bold tracking-tight text-[#1a2b3c] leading-none mb-3">
               Split<span className="text-[#335c52]">Wise</span>
             </h1>
@@ -108,19 +110,19 @@ export default function RegisterPage() {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          className="relative z-30 bg-white rounded-t-[40px] px-8 pt-8 pb-10 flex-grow shadow-[0_-10px_40px_rgba(0,0,0,0.05)]"
+          className="relative z-30 bg-white rounded-t-[40px] px-8 pt-8 pb-12 flex-grow shadow-[0_-10px_40px_rgba(0,0,0,0.05)]"
         >
           {/* Progress Tracker */}
           <div className="flex items-center justify-center mb-8 relative">
             <div className="absolute top-4 left-1/2 -translate-x-1/2 w-32 h-[2px] bg-gray-200 -z-10"></div>
-            
+
             <div className="flex flex-col items-center mx-4">
               <div className="w-8 h-8 rounded-full bg-[#335c52] text-white flex items-center justify-center text-sm font-bold mb-1 shadow-sm border-2 border-white">
                 1
               </div>
               <span className="text-[11px] font-semibold text-[#335c52]">Create Account</span>
             </div>
-            
+
             <div className="flex flex-col items-center mx-4">
               <div className="w-8 h-8 rounded-full bg-white border-2 border-gray-200 text-gray-400 flex items-center justify-center text-sm font-bold mb-1">
                 2
@@ -231,12 +233,12 @@ export default function RegisterPage() {
 
             {/* Terms of Service Checkbox */}
             <div className="flex items-center mt-6">
-              <input 
-                type="checkbox" 
-                id="terms" 
+              <input
+                type="checkbox"
+                id="terms"
                 checked={agreed}
                 onChange={(e) => setAgreed(e.target.checked)}
-                className="w-4 h-4 rounded-full border-gray-300 text-[#335c52] focus:ring-[#335c52]" 
+                className="w-4 h-4 rounded-full border-gray-300 text-[#335c52] focus:ring-[#335c52]"
               />
               <label htmlFor="terms" className="ml-2 text-[12px] font-medium text-[#8e98a3]">
                 I agree to the <a href="#" className="text-[#335c52] hover:underline font-semibold">Terms of Service</a> and <a href="#" className="text-[#335c52] hover:underline font-semibold">Privacy Policy</a>
@@ -296,14 +298,14 @@ export default function RegisterPage() {
           </p>
 
           {/* Footer Landscape Illustration - Now inside the card */}
-          <div className="absolute bottom-0 left-0 right-0 h-[100px] pointer-events-none z-10">
-            <div className="absolute inset-0 bg-no-repeat" style={{ 
-              backgroundImage: "url('/footer-landscape.png')", 
-              backgroundSize: 'cover', 
-              backgroundPosition: 'bottom center', 
+          <div className="absolute bottom-0 left-0 right-0 h-[180px] pointer-events-none z-10">
+            <div className="absolute inset-0 bg-no-repeat" style={{
+              backgroundImage: "url('/footer-landscape.png')",
+              backgroundSize: 'cover',
+              backgroundPosition: 'bottom center',
               mixBlendMode: 'multiply',
-              WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)',
-              maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)'
+              WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',
+              maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)'
             }} />
           </div>
         </motion.div>
