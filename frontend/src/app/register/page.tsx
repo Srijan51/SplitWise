@@ -70,22 +70,22 @@ export default function RegisterPage() {
           </button>
         </div>
 
-        {/* Top Header Section (Split Layout) */}
-        <div className="relative pt-16 pb-6 px-6 z-20 flex items-center h-[260px]">
-          {/* Hero Illustration Left */}
-          <div className="w-1/2 h-full relative -ml-4">
-            <div className="absolute inset-0 bg-no-repeat" style={{
-              backgroundImage: "url('/register-hero.png')",
-              backgroundSize: 'contain',
-              backgroundPosition: 'center left',
+        {/* Top Header Section */}
+        <div className="relative pt-16 pb-6 px-6 z-20 flex h-[280px]">
+          {/* Full-width Hero Background */}
+          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+             <div className="absolute inset-0 bg-no-repeat" style={{ 
+              backgroundImage: "url('/register-banner.png')", 
+              backgroundSize: 'cover', 
+              backgroundPosition: 'center left', 
               mixBlendMode: 'multiply',
-              WebkitMaskImage: 'radial-gradient(closest-side, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',
-              maskImage: 'radial-gradient(closest-side, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)'
+              WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%)',
+              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%)'
             }} />
           </div>
 
           {/* Text Right */}
-          <div className="w-1/2 pl-2 flex flex-col justify-center">
+          <div className="w-1/2 ml-auto pl-10 flex flex-col justify-center relative z-10">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-sm border border-gray-100 mb-4">
               <div className="flex gap-1">
                 <div className="w-3.5 h-3.5 rounded-full bg-[#1a2b3c]"></div>
