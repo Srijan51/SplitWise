@@ -57,9 +57,9 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen w-full relative flex flex-col bg-[#fdfaf5] overflow-hidden sm:items-center sm:justify-center">
-      <div className="w-full max-w-lg bg-[#fdfaf5] min-h-screen relative shadow-2xl overflow-x-hidden flex flex-col">
-
+    <div className="min-h-screen w-full relative flex flex-col md:flex-row bg-[#fdfaf5] overflow-hidden">
+      {/* LEFT SIDE (Branding & Hero) */}
+      <div className="w-full md:w-1/2 flex flex-col relative md:h-screen">
         {/* Back Button */}
         <div className="absolute top-6 left-6 z-30">
           <button
@@ -71,7 +71,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Top Header Section */}
-        <div className="relative pt-16 pb-6 px-6 z-20 flex h-[280px]">
+        <div className="relative pt-16 pb-6 px-6 z-20 flex h-[280px] md:h-full md:flex-col md:items-center md:justify-center md:pt-6">
           {/* Full-width Hero Background */}
           <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
              <div className="absolute inset-0 bg-no-repeat" style={{ 
@@ -85,7 +85,7 @@ export default function RegisterPage() {
           </div>
 
           {/* Text Right */}
-          <div className="w-1/2 ml-auto pl-10 flex flex-col justify-center relative z-10">
+          <div className="w-1/2 ml-auto pl-10 flex flex-col justify-center relative z-10 md:w-full md:ml-0 md:pl-0 md:text-center md:items-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-sm border border-gray-100 mb-4">
               <div className="flex gap-1">
                 <div className="w-3.5 h-3.5 rounded-full bg-[#1a2b3c]"></div>
@@ -104,14 +104,17 @@ export default function RegisterPage() {
             </p>
           </div>
         </div>
+      </div>
 
-        {/* Registration Card */}
+      {/* RIGHT SIDE (Register Form) */}
+      <div className="w-full md:w-1/2 flex flex-col">
         <motion.div
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          className="relative z-30 bg-white rounded-t-[40px] px-8 pt-8 pb-12 flex-grow shadow-[0_-10px_40px_rgba(0,0,0,0.05)]"
+          className="relative z-30 bg-white rounded-t-[40px] md:rounded-none px-8 pt-8 pb-12 flex-grow shadow-[0_-10px_40px_rgba(0,0,0,0.05)] md:shadow-[-20px_0_40px_rgba(0,0,0,0.05)] md:h-screen md:overflow-y-auto md:px-20 md:pt-12 md:flex md:flex-col md:justify-center"
         >
+          <div className="max-w-md mx-auto w-full">
           {/* Progress Tracker */}
           <div className="flex items-center justify-center mb-8 relative">
             <div className="absolute top-4 left-1/2 -translate-x-1/2 w-32 h-[2px] bg-gray-200 -z-10"></div>
@@ -296,9 +299,10 @@ export default function RegisterPage() {
               Login
             </Link>
           </p>
+          </div>
 
           {/* Footer Landscape Illustration - Now inside the card */}
-          <div className="absolute bottom-0 left-0 right-0 h-[180px] pointer-events-none z-10">
+          <div className="absolute bottom-0 left-0 right-0 h-[180px] pointer-events-none z-10 md:hidden">
             <div className="absolute inset-0 bg-no-repeat" style={{
               backgroundImage: "url('/footer-landscape.png')",
               backgroundSize: 'cover',

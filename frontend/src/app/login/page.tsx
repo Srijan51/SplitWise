@@ -47,12 +47,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full relative flex flex-col bg-[#fdfaf5] overflow-hidden sm:items-center sm:justify-center">
-      {/* Mobile-like container frame on desktop, full width on mobile */}
-      <div className="w-full max-w-lg bg-[#fdfaf5] min-h-screen relative shadow-2xl overflow-x-hidden flex flex-col">
-        
+    <div className="min-h-screen w-full relative flex flex-col md:flex-row bg-[#fdfaf5] overflow-hidden">
+      
+      {/* LEFT SIDE (Branding & Hero) */}
+      <div className="w-full md:w-1/2 flex flex-col relative md:h-screen">
         {/* Top Header Section */}
-        <div className="relative pt-6 pb-2 px-6 z-20">
+        <div className="relative pt-6 pb-2 px-6 z-20 md:pt-12 md:px-12 md:flex md:flex-col md:items-center">
           <button 
             onClick={() => router.back()} 
             className="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center hover:bg-black/10 transition-colors"
@@ -79,7 +79,7 @@ export default function LoginPage() {
         </div>
 
         {/* Hero Illustration */}
-        <div className="relative h-[380px] w-full -mt-12 z-10 flex-shrink-0">
+        <div className="relative h-[380px] w-full -mt-12 z-10 flex-shrink-0 md:flex-grow md:h-auto md:mt-0">
           {/* Note: User must copy the generated hero-couch.png to frontend/public */}
           <div className="absolute inset-0 bg-no-repeat" style={{ 
             backgroundImage: "url('/hero-couch.png')", 
@@ -90,14 +90,17 @@ export default function LoginPage() {
             maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%)'
           }} />
         </div>
+      </div>
 
-        {/* Login Card */}
+      {/* RIGHT SIDE (Login Form) */}
+      <div className="w-full md:w-1/2 flex flex-col">
         <motion.div
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          className="relative z-30 bg-white rounded-t-[40px] px-8 pt-8 pb-12 flex-grow shadow-[0_-10px_40px_rgba(0,0,0,0.05)]"
+          className="relative z-30 bg-white rounded-t-[40px] md:rounded-none px-8 pt-8 pb-12 flex-grow shadow-[0_-10px_40px_rgba(0,0,0,0.05)] md:shadow-[-20px_0_40px_rgba(0,0,0,0.05)] md:h-screen md:overflow-y-auto md:px-20 md:pt-20 md:flex md:flex-col md:justify-center"
         >
+          <div className="max-w-md mx-auto w-full">
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-[#1a2b3c] mb-1">
               Welcome back! 👋
@@ -205,7 +208,7 @@ export default function LoginPage() {
           </p>
 
           {/* Footer Landscape Illustration - Now inside the card */}
-          <div className="absolute bottom-0 left-0 right-0 h-[180px] pointer-events-none z-10">
+          <div className="absolute bottom-0 left-0 right-0 h-[180px] pointer-events-none z-10 md:hidden">
             <div className="absolute inset-0 bg-no-repeat" style={{ 
               backgroundImage: "url('/footer-landscape.png')", 
               backgroundSize: 'cover', 
@@ -214,6 +217,7 @@ export default function LoginPage() {
               WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',
               maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)'
             }} />
+          </div>
           </div>
         </motion.div>
       </div>

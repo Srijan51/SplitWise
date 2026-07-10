@@ -57,46 +57,52 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     window.location.href = "/login";
   };
 
+  const isDashboard = pathname === "/dashboard";
+
   return (
     <div className="app-layout">
       {/* Antigravity particle background */}
-      <div className="absolute inset-0" style={{ zIndex: 0 }}>
-        <Antigravity
-          count={200}
-          magnetRadius={6}
-          ringRadius={7}
-          waveSpeed={0.4}
-          waveAmplitude={1}
-          particleSize={1.2}
-          lerpSpeed={0.05}
-          color="#a1a1aa"
-          autoAnimate={true}
-          particleVariance={0.8}
-        />
-      </div>
+      {!isDashboard && (
+        <div className="absolute inset-0" style={{ zIndex: 0 }}>
+          <Antigravity
+            count={200}
+            magnetRadius={6}
+            ringRadius={7}
+            waveSpeed={0.4}
+            waveAmplitude={1}
+            particleSize={1.2}
+            lerpSpeed={0.05}
+            color="#a1a1aa"
+            autoAnimate={true}
+            particleVariance={0.8}
+          />
+        </div>
+      )}
 
 
 
       {/* Top Header */}
-      <header className="app-header">
-        <Link href="/dashboard" className="header-logo-container">
-          <div className="header-logo-icon">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          <span className="header-title">SplitWise</span>
-        </Link>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="user-avatar">
-              {getInitials(user.name)}
+      {!isDashboard && (
+        <header className="app-header">
+          <Link href="/dashboard" className="header-logo-container">
+            <div className="header-logo-icon">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <button onClick={handleLogout} className="btn-ghost p-2 rounded-xl" title="Sign Out">
-              <LogOut className="w-4 h-4" style={{ color: "var(--color-text-muted)" }} />
-            </button>
+            <span className="header-title">SplitWise</span>
+          </Link>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="user-avatar">
+                {getInitials(user.name)}
+              </div>
+              <button onClick={handleLogout} className="btn-ghost p-2 rounded-xl" title="Sign Out">
+                <LogOut className="w-4 h-4" style={{ color: "var(--color-text-muted)" }} />
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Main Content */}
       <main className="main-container">
@@ -104,20 +110,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* GooeyNav Dock (mobile/tablet only — hidden on desktop via CSS) */}
-      <div className="dock-wrapper">
-        <div className="dock-container justify-center">
-          <GooeyNav
-            items={dockItems}
-            particleCount={15}
-            particleDistances={[90, 10]}
-            particleR={100}
-            initialActiveIndex={initialActiveIndex}
-            animationTime={600}
-            timeVariance={300}
-            colors={[1, 2, 3, 1, 2, 3, 1, 4]}
-          />
+      {!isDashboard && (
+        <div className="dock-wrapper">
+          <div className="dock-container justify-center">
+            <GooeyNav
+              items={dockItems}
+              particleCount={15}
+              particleDistances={[90, 10]}
+              particleR={100}
+              initialActiveIndex={initialActiveIndex}
+              animationTime={600}
+              timeVariance={300}
+              colors={[1, 2, 3, 1, 2, 3, 1, 4]}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
