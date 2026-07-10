@@ -22,9 +22,13 @@ export default function JoinGroupPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/groups/join", {
+      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+      const res = await fetch("http://localhost:8000/api/groups/join", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ inviteCode: code.trim() }),
       });
 

@@ -77,6 +77,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     except jwt.PyJWTError:
         raise HTTPException(status_code=401)
 
+@app.get("/api/users/me")
+async def get_me(user = Depends(get_current_user)):
+    return {"id": user.id, "email": user.email, "name": user.name}
+
+@app.get("/api/users")
+async def get_all_users(user = Depends(get_current_user)):
+    users = await db.user.find_many()
+    return [{"id": u.id, "name": u.name, "email": u.email} for u in users]
+
 # --- GROUPS ---
 class GroupCreate(BaseModel):
     name: str
@@ -109,6 +118,22 @@ async def create_group(group: GroupCreate, user = Depends(get_current_user)):
     )
     return new_group
 
+class JoinGroup(BaseModel):
+    inviteCode: str
+
+@app.post("/api/groups/join")
+async def join_group(data: JoinGroup, user = Depends(get_current_user)):
+    group = await db.group.find_first(where={"inviteCode": data.inviteCode})
+    if not group:
+        raise HTTPException(status_code=404, detail="Invalid invite code")
+    
+    existing = await db.groupmember.find_first(where={"groupId": group.id, "userId": user.id})
+    if existing:
+        return {"message": "Already a member", "groupId": group.id}
+        
+    await db.groupmember.create(data={"groupId": group.id, "userId": user.id})
+    return {"message": "Joined successfully", "groupId": group.id}
+
 @app.get("/api/groups/{group_id}")
 async def get_group(group_id: str, user = Depends(get_current_user)):
     group = await db.group.find_unique(
@@ -121,6 +146,100 @@ async def get_group(group_id: str, user = Depends(get_current_user)):
     if not group:
         raise HTTPException(status_code=404, detail="Group not found")
     return group
+
+@app.get("/api/groups/{group_id}/balances")
+async def get_group_balances(group_id: str, user = Depends(get_current_user)):
+    group = await db.group.find_unique(
+        where={"id": group_id},
+        include={"members": {"include": {"user": True}}, "expenses": {"include": {"splits": True}}}
+    )
+    if not group:
+        raise HTTPException(status_code=404)
+    
+    balances = {}
+    for m in (group.members or []):
+        if m.user:
+            balances[m.userId] = {"userId": m.userId, "name": m.user.name, "netBalance": 0}
+            
+    for exp in (group.expenses or []):
+        if exp.paidById in balances:
+            balances[exp.paidById]["netBalance"] += exp.amount
+        for split in (exp.splits or []):
+            if split.userId in balances:
+                balances[split.userId]["netBalance"] -= split.amountOwed
+                
+    return {"memberBalances": list(balances.values())}
+
+# --- EXPENSES & ACTIVITIES ---
+class ExpenseSplitCreate(BaseModel):
+    userId: str
+    amountOwed: float
+
+class ExpenseCreate(BaseModel):
+    groupId: str
+    description: str
+    amount: float
+    paidById: str
+    splitType: str = "EQUAL"
+    splits: List[ExpenseSplitCreate]
+
+@app.post("/api/expenses")
+async def create_expense(data: ExpenseCreate, user = Depends(get_current_user)):
+    group = await db.group.find_unique(where={"id": data.groupId})
+    if not group:
+        raise HTTPException(status_code=404)
+        
+    expense = await db.expense.create(
+        data={
+            "groupId": data.groupId,
+            "paidById": data.paidById,
+            "amount": data.amount,
+            "description": data.description,
+            "splitType": data.splitType,
+            "splits": {
+                "create": [{"userId": s.userId, "amountOwed": s.amountOwed} for s in data.splits]
+            }
+        },
+        include={"group": True, "paidBy": True}
+    )
+    
+    await sio.emit("expense_added", {"groupId": data.groupId, "expenseId": expense.id}, room=data.groupId)
+    return expense
+
+@app.get("/api/activities")
+async def get_activities(user = Depends(get_current_user)):
+    memberships = await db.groupmember.find_many(where={"userId": user.id})
+    group_ids = [m.groupId for m in memberships]
+    
+    if not group_ids:
+        return []
+        
+    expenses = await db.expense.find_many(
+        where={"groupId": {"in": group_ids}},
+        include={"group": True, "paidBy": True, "splits": True},
+        order={"createdAt": "desc"},
+        take=50
+    )
+    
+    activities = []
+    for exp in expenses:
+        my_split = next((s.amountOwed for s in (exp.splits or []) if s.userId == user.id), 0)
+        i_paid = exp.paidById == user.id
+        my_share = (exp.amount - my_split) if i_paid else -my_split
+        
+        activities.append({
+            "id": exp.id,
+            "description": exp.description,
+            "groupName": exp.group.name if exp.group else "Unknown",
+            "groupEmoji": exp.group.emoji if exp.group else "👥",
+            "paidBy": exp.paidBy.name if exp.paidBy else "Someone",
+            "iPaid": i_paid,
+            "amount": exp.amount,
+            "myShare": my_share,
+            "createdAt": exp.createdAt
+        })
+        
+    return activities
 
 # --- AI RECEIPT SCANNER ---
 class ScannedItem(BaseModel):

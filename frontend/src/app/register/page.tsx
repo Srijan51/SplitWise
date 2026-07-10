@@ -71,7 +71,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Top Header Section */}
-        <div className="relative pt-16 pb-6 px-6 z-20 flex h-[280px] md:h-full md:flex-col md:items-center md:justify-center md:pt-6">
+        <div className="relative pt-16 pb-6 px-6 z-20 flex h-[280px] md:h-full md:flex-col md:justify-center md:pt-6">
           {/* Full-width Hero Background */}
           <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
              <div className="absolute inset-0 bg-no-repeat" style={{ 
@@ -83,25 +83,10 @@ export default function RegisterPage() {
               maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%)'
             }} />
           </div>
-
+          
           {/* Text Right */}
-          <div className="w-1/2 ml-auto pl-10 flex flex-col justify-center relative z-10 md:w-full md:ml-0 md:pl-0 md:text-center md:items-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-sm border border-gray-100 mb-4">
-              <div className="flex gap-1">
-                <div className="w-3.5 h-3.5 rounded-full bg-[#1a2b3c]"></div>
-                <div className="w-3.5 h-3.5 rounded-full bg-[#528f80]"></div>
-              </div>
-            </div>
-
-            <h1 className="text-[2rem] font-bold tracking-tight text-[#1a2b3c] leading-none mb-3">
-              Split<span className="text-[#335c52]">Wise</span>
-            </h1>
-            <h2 className="text-[1.35rem] font-bold text-[#1a2b3c] mb-2 leading-tight">
-              Let&apos;s get you<br />started! ✨
-            </h2>
-            <p className="text-[#8e98a3] text-[13px] leading-snug">
-              Create your account and<br />start splitting smarter.
-            </p>
+          <div className="w-[60%] ml-auto flex flex-col justify-center items-end relative z-10 md:w-full md:ml-0 md:pl-0 md:pr-12 md:items-end md:text-right">
+            <img src="/logo.png" alt="SplitWise Logo" className="h-auto w-72 md:w-96 object-contain -mt-8 md:-mt-12 translate-x-2 md:translate-x-6" />
           </div>
         </div>
       </div>

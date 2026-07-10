@@ -30,9 +30,13 @@ export default function CreateGroupPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/groups", {
+      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+      const res = await fetch("http://localhost:8000/api/groups", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify(form),
       });
 
