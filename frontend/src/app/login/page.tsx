@@ -79,15 +79,15 @@ export default function LoginPage() {
         </div>
 
         {/* Hero Illustration */}
-        <div className="relative h-[260px] w-full -mt-2 z-10 flex-shrink-0">
-          {/* Note: User must copy the generated hero-couch.png to frontend/public/ */}
+        <div className="relative h-[380px] w-full -mt-12 z-10 flex-shrink-0">
+          {/* Note: User must copy the generated hero-couch.png to frontend/public */}
           <div className="absolute inset-0 bg-no-repeat" style={{ 
             backgroundImage: "url('/hero-couch.png')", 
             backgroundSize: 'cover', 
-            backgroundPosition: 'center 20%', 
+            backgroundPosition: 'center', 
             mixBlendMode: 'multiply',
-            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%)',
-            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%)'
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%)',
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%)'
           }} />
         </div>
 
