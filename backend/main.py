@@ -140,11 +140,15 @@ async def get_group(group_id: str, user = Depends(get_current_user)):
         where={"id": group_id},
         include={
             "members": {"include": {"user": True}},
-            "expenses": {"include": {"paidBy": True, "splits": True}, "order": {"createdAt": "desc"}}
+            "expenses": {"include": {"paidBy": True, "splits": True}}
         }
     )
     if not group:
         raise HTTPException(status_code=404, detail="Group not found")
+        
+    if group.expenses:
+        group.expenses.sort(key=lambda x: x.createdAt, reverse=True)
+        
     return group
 
 @app.get("/api/groups/{group_id}/balances")
@@ -168,7 +172,48 @@ async def get_group_balances(group_id: str, user = Depends(get_current_user)):
             if split.userId in balances:
                 balances[split.userId]["netBalance"] -= split.amountOwed
                 
-    return {"memberBalances": list(balances.values())}
+    member_balances = list(balances.values())
+    
+    # Calculate simplified debts
+    debtors = []
+    creditors = []
+    
+    for mb in member_balances:
+        nb = mb["netBalance"]
+        if nb < -0.01:
+            debtors.append({"userId": mb["userId"], "name": mb["name"], "balance": abs(nb)})
+        elif nb > 0.01:
+            creditors.append({"userId": mb["userId"], "name": mb["name"], "balance": nb})
+            
+    debtors.sort(key=lambda x: x["balance"], reverse=True)
+    creditors.sort(key=lambda x: x["balance"], reverse=True)
+    
+    simplified_debts = []
+    i = 0
+    j = 0
+    while i < len(debtors) and j < len(creditors):
+        debtor = debtors[i]
+        creditor = creditors[j]
+        
+        amount = min(debtor["balance"], creditor["balance"])
+        
+        simplified_debts.append({
+            "fromUserId": debtor["userId"],
+            "fromName": debtor["name"],
+            "toUserId": creditor["userId"],
+            "toName": creditor["name"],
+            "amount": amount
+        })
+        
+        debtor["balance"] -= amount
+        creditor["balance"] -= amount
+        
+        if debtor["balance"] < 0.01:
+            i += 1
+        if creditor["balance"] < 0.01:
+            j += 1
+            
+    return {"memberBalances": member_balances, "simplifiedDebts": simplified_debts}
 
 # --- EXPENSES & ACTIVITIES ---
 class ExpenseSplitCreate(BaseModel):

@@ -57,12 +57,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     window.location.href = "/login";
   };
 
-  const isDashboard = pathname === "/dashboard";
+  const isFullScreenLayout = pathname === "/dashboard" || pathname === "/groups";
 
   return (
     <div className="app-layout">
       {/* Antigravity particle background */}
-      {!isDashboard && (
+      {!isFullScreenLayout && (
         <div className="absolute inset-0" style={{ zIndex: 0 }}>
           <Antigravity
             count={200}
@@ -82,7 +82,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 
       {/* Top Header */}
-      {!isDashboard && (
+      {!isFullScreenLayout && (
         <header className="app-header">
           <Link href="/dashboard" className="header-logo-container">
             <div className="header-logo-icon">
@@ -105,12 +105,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main Content */}
-      <main className="main-container">
+      <main className={isFullScreenLayout ? "w-full h-full p-0 m-0 overflow-hidden" : "main-container"}>
         {children}
       </main>
 
       {/* GooeyNav Dock (mobile/tablet only — hidden on desktop via CSS) */}
-      {!isDashboard && (
+      {!isFullScreenLayout && (
         <div className="dock-wrapper">
           <div className="dock-container justify-center">
             <GooeyNav

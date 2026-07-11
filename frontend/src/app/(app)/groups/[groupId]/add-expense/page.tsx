@@ -50,7 +50,10 @@ export default function AddExpensePage({
 
   useEffect(() => {
     const fetchMembers = async () => {
-      const res = await fetch(`/api/groups/${groupId}`);
+      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+      const res = await fetch(`http://localhost:8000/api/groups/${groupId}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
       if (res.ok) {
         const data = await res.json();
         setMembers(data.members);
@@ -136,9 +139,13 @@ export default function AddExpensePage({
         });
       }
 
-      const res = await fetch(`/api/groups/${groupId}/expenses`, {
+      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+      const res = await fetch(`http://localhost:8000/api/expenses`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           amount,
           description: form.description,

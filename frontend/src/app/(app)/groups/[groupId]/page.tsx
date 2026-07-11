@@ -68,7 +68,7 @@ export default function GroupDetailPage({
 }) {
   const { groupId } = use(params);
   const router = useRouter();
-  const { data: session } = useSession();
+  const [session, setSession] = useState<any>(null);
   const { socket } = useSocket();
   const [group, setGroup] = useState<GroupData | null>(null);
   const [balances, setBalances] = useState<GroupBalances | null>(null);
@@ -79,9 +79,24 @@ export default function GroupDetailPage({
 
   const fetchGroup = async () => {
     try {
+      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+      const headers = { "Authorization": `Bearer ${token}` };
+      
+      const userRes = await fetch("http://localhost:8000/api/users/me", { headers });
+      if (userRes.ok) {
+        setSession({ user: await userRes.json() });
+      } else {
+        router.push("/login");
+        return;
+      }
+
       const [groupRes, balRes] = await Promise.all([
-        fetch(`/api/groups/${groupId}`),
-        fetch(`/api/groups/${groupId}/balances`),
+        fetch(`http://localhost:8000/api/groups/${groupId}`, { headers }),
+        fetch(`http://localhost:8000/api/groups/${groupId}/balances`, { headers }),
       ]);
       if (groupRes.ok) setGroup(await groupRes.json());
       if (balRes.ok) setBalances(await balRes.json());
@@ -103,7 +118,10 @@ export default function GroupDetailPage({
 
     const handleExpenseCreated = () => fetchGroup();
     const handleBalanceUpdated = async () => {
-      const res = await fetch(`/api/groups/${groupId}/balances`);
+      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+      const res = await fetch(`http://localhost:8000/api/groups/${groupId}/balances`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
       if (res.ok) setBalances(await res.json());
     };
     const handleSettlementUpdate = () => fetchGroup();
@@ -133,9 +151,13 @@ export default function GroupDetailPage({
 
   const confirmSettlement = async (settlementId: string) => {
     try {
-      const res = await fetch(`/api/groups/${groupId}/settlements`, {
+      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+      const res = await fetch(`http://localhost:8000/api/groups/${groupId}/settlements`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ settlementId, confirmed: true }),
       });
       if (res.ok) {
@@ -170,7 +192,7 @@ export default function GroupDetailPage({
 
   const isTrip = group.type === "TRIP";
   const myBalance = balances?.memberBalances.find((m) => m.userId === session?.user?.id)?.netBalance ?? 0;
-  const pendingSettlements = group.settlements.filter(
+  const pendingSettlements = (group.settlements || []).filter(
     (s) => !s.confirmedByRecipient && s.toUser.id === session?.user?.id
   );
 
@@ -466,9 +488,13 @@ function SettleTab({
   const handleSettle = async (debt: SimplifiedDebt) => {
     setSettling(debt.toUserId);
     try {
-      const res = await fetch(`/api/groups/${group.id}/settlements`, {
+      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+      const res = await fetch(`http://localhost:8000/api/groups/${group.id}/settlements`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           toUserId: debt.toUserId,
           amount: debt.amount,
