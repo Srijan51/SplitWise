@@ -69,21 +69,26 @@ export default function GroupsPage() {
   return (
     <div className="min-h-screen bg-[#fdfaf5] pb-24 overflow-x-hidden font-sans relative">
       {/* Hero Section */}
-      <div className="relative pt-12 px-6">
-        <div className="absolute top-0 right-0 w-[200px] h-[150px] pointer-events-none opacity-90" style={{ backgroundImage: "url('/ai-cat.png')", backgroundSize: "contain", backgroundPosition: "top right", backgroundRepeat: "no-repeat" }} />
+      <div className="relative pt-2 px-6">
+        <div className="absolute top-[40px] right-[-10px] md:top-[50px] md:right-[20px] w-[150px] h-[150px] md:w-[200px] md:h-[200px] pointer-events-none opacity-90 transition-transform duration-700 hover:scale-105" style={{ 
+          backgroundImage: "url('/ai-cat.png')", 
+          backgroundSize: "contain", 
+          backgroundPosition: "top right", 
+          backgroundRepeat: "no-repeat",
+          mixBlendMode: 'multiply',
+          maskImage: 'radial-gradient(circle at center, black 45%, transparent 70%)',
+          WebkitMaskImage: 'radial-gradient(circle at center, black 45%, transparent 70%)'
+        }} />
         
-        <div className="flex items-center justify-between relative z-10">
+        <div className="flex items-center justify-between relative z-10 mt-2">
           <button onClick={() => router.back()} className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors">
             <ChevronLeft className="w-5 h-5 text-gray-700" />
           </button>
-          <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors">
-            <MoreHorizontal className="w-5 h-5 text-gray-700" />
-          </button>
         </div>
 
-        <div className="mt-6 relative z-10">
+        <div className="mt-4 relative z-10 flex flex-col items-center text-center">
           <h1 className="text-[28px] font-bold text-[#1a2b3c] tracking-tight">My Groups</h1>
-          <p className="text-[13px] text-[#8e98a3] mt-1 max-w-[200px] leading-snug">
+          <p className="text-[13px] text-[#8e98a3] mt-1 max-w-[260px] leading-snug">
             Manage your groups, members and shared expenses.
           </p>
         </div>
