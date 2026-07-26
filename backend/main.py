@@ -327,10 +327,15 @@ async def create_expense(data: ExpenseCreate, user = Depends(get_current_user)):
     return expense
 
 @app.get("/api/activities")
-async def get_activities(user = Depends(get_current_user)):
+async def get_activities(group_id: Optional[str] = None, user = Depends(get_current_user)):
     memberships = await db.groupmember.find_many(where={"userId": user.id})
     group_ids = [m.groupId for m in memberships]
     
+    if group_id:
+        if group_id not in group_ids:
+            return []
+        group_ids = [group_id]
+        
     if not group_ids:
         return []
         
@@ -360,6 +365,71 @@ async def get_activities(user = Depends(get_current_user)):
         })
         
     return activities
+
+@app.get("/api/analytics")
+async def get_analytics(group_id: Optional[str] = None, user = Depends(get_current_user)):
+    memberships = await db.groupmember.find_many(where={"userId": user.id})
+    group_ids = [m.groupId for m in memberships]
+    
+    if group_id:
+        if group_id not in group_ids:
+            return {"totalSpent": 0, "totalExpenses": 0, "categories": [], "topSpenders": [], "trend": [], "settled": 0, "pending": 0}
+        group_ids = [group_id]
+    
+    if not group_ids:
+        return {"totalSpent": 0, "totalExpenses": 0, "categories": [], "topSpenders": [], "trend": [], "settled": 0, "pending": 0}
+    
+    expenses = await db.expense.find_many(
+        where={"groupId": {"in": group_ids}},
+        include={"paidBy": True, "splits": True, "group": True}
+    )
+    
+    total_spent = sum(e.amount for e in expenses)
+    
+    # Category breakdown
+    cat_map = {}
+    for e in expenses:
+        cat = e.category or "General"
+        cat_map[cat] = cat_map.get(cat, 0) + e.amount
+    categories = [{"name": k, "amount": v, "percentage": round(v / total_spent * 100) if total_spent else 0} for k, v in sorted(cat_map.items(), key=lambda x: -x[1])]
+    
+    # Top spenders
+    spender_map = {}
+    for e in expenses:
+        name = e.paidBy.name if e.paidBy else "Unknown"
+        uid = e.paidById
+        spender_map[uid] = {"name": name, "amount": spender_map.get(uid, {}).get("amount", 0) + e.amount, "isYou": uid == user.id}
+    top_spenders = sorted(spender_map.values(), key=lambda x: -x["amount"])[:5]
+    
+    # Spending trend (last 14 days)
+    from datetime import datetime, timedelta
+    trend = []
+    for i in range(13, -1, -1):
+        day = datetime.utcnow() - timedelta(days=i)
+        day_str = day.strftime("%d %b")
+        day_total = sum(e.amount for e in expenses if e.createdAt.strftime("%Y-%m-%d") == day.strftime("%Y-%m-%d"))
+        trend.append({"date": day_str, "amount": day_total})
+    
+    # Payment status (simplified: settled = 0 balance debts, pending = non-zero)
+    settled = 0
+    pending = 0
+    for e in expenses:
+        for s in (e.splits or []):
+            if s.userId == user.id:
+                if e.paidById == user.id:
+                    settled += e.amount - s.amountOwed
+                else:
+                    pending += s.amountOwed
+    
+    return {
+        "totalSpent": total_spent,
+        "totalExpenses": len(expenses),
+        "categories": categories,
+        "topSpenders": top_spenders,
+        "trend": trend,
+        "settled": settled,
+        "pending": pending,
+    }
 
 # --- AI RECEIPT SCANNER ---
 class ScannedItem(BaseModel):
