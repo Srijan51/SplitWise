@@ -57,7 +57,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     window.location.href = "/login";
   };
 
-  const isFullScreenLayout = pathname === "/dashboard" || pathname.startsWith("/groups") || pathname.startsWith("/add-expense");
+  const isFullScreenLayout = pathname === "/dashboard" || pathname.startsWith("/groups") || pathname.startsWith("/add-expense") || pathname.startsWith("/activity") || pathname.startsWith("/profile");
 
   return (
     <div className="app-layout">

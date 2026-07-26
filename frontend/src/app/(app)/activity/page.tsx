@@ -73,6 +73,8 @@ export default function ActivityPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "expenses">("overview");
+  const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<string>("all");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -80,17 +82,24 @@ export default function ActivityPage() {
       if (!token) return router.push("/login");
       const headers = { "Authorization": `Bearer ${token}` };
 
-      const [analyticsRes, activitiesRes] = await Promise.all([
-        fetch("http://localhost:8000/api/analytics", { headers }),
-        fetch("http://localhost:8000/api/activities", { headers }),
+      const queryParams = selectedGroup !== "all" ? `?group_id=${selectedGroup}` : "";
+
+      const [analyticsRes, activitiesRes, groupsRes] = await Promise.all([
+        fetch(`http://localhost:8000/api/analytics${queryParams}`, { headers }),
+        fetch(`http://localhost:8000/api/activities${queryParams}`, { headers }),
+        fetch("http://localhost:8000/api/groups", { headers }),
       ]);
 
       if (analyticsRes.ok) setAnalytics(await analyticsRes.json());
       if (activitiesRes.ok) setActivities(await activitiesRes.json());
+      if (groupsRes.ok) {
+        const groupsData = await groupsRes.json();
+        setGroups(groupsData);
+      }
       setLoading(false);
     };
     fetchData();
-  }, [router]);
+  }, [router, selectedGroup]);
 
   if (loading) {
     return (
@@ -121,9 +130,17 @@ export default function ActivityPage() {
 
         <div className="mt-6 relative z-10 flex flex-col items-center text-center">
           <h1 className="text-[26px] font-bold text-[#1a2b3c] tracking-tight">Activity & Analytics</h1>
-          <p className="text-[13px] text-[#8e98a3] mt-1 max-w-[260px] leading-snug">
-            Your spending overview across all groups.
-          </p>
+          
+          <select 
+            value={selectedGroup}
+            onChange={(e) => setSelectedGroup(e.target.value)}
+            className="mt-3 bg-white border border-gray-100 rounded-xl px-4 py-2 text-[13px] font-bold text-[#335c52] outline-none cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+          >
+            <option value="all">All Groups</option>
+            {groups.map(g => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
         </div>
 
         {/* Tab Toggle */}
@@ -159,7 +176,7 @@ export default function ActivityPage() {
               <p className="text-[12px] text-[#8e98a3] mt-0.5">Across {analytics.totalExpenses} expenses</p>
               <div className="flex items-center gap-1.5 mt-3">
                 <span className="flex items-center gap-1 text-[11px] font-bold text-[#528f80] bg-[#eef5f3] px-2.5 py-1 rounded-full">
-                  <TrendingUp className="w-3 h-3" /> All groups combined
+                  <TrendingUp className="w-3 h-3" /> {selectedGroup === "all" ? "All groups combined" : groups.find(g => g.id === selectedGroup)?.name}
                 </span>
               </div>
             </div>
@@ -257,21 +274,30 @@ export default function ActivityPage() {
                 <line x1="0" y1="60" x2={(analytics.trend.length - 1) * 50} y2="60" stroke="#f0f4f2" strokeWidth="1" />
                 <line x1="0" y1="90" x2={(analytics.trend.length - 1) * 50} y2="90" stroke="#f0f4f2" strokeWidth="1" />
                 
-                {/* Area fill */}
-                <path
-                  d={`M 0 ${110 - (analytics.trend[0]?.amount / maxTrend) * 90} ${analytics.trend.map((t, i) => `L ${i * 50} ${110 - (t.amount / maxTrend) * 90}`).join(' ')} L ${(analytics.trend.length - 1) * 50} 110 L 0 110 Z`}
-                  fill="url(#trendGradient)"
-                />
-                
-                {/* Line */}
-                <polyline
-                  fill="none"
-                  stroke="#335c52"
-                  strokeWidth="2.5"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                  points={analytics.trend.map((t, i) => `${i * 50},${110 - (t.amount / maxTrend) * 90}`).join(' ')}
-                />
+                {/* Path generation with simple bezier curves */}
+                {(() => {
+                  const points = analytics.trend.map((t, i) => ({
+                    x: i * 50,
+                    y: 110 - (t.amount / maxTrend) * 90
+                  }));
+                  
+                  if (points.length === 0) return null;
+                  
+                  let d = `M ${points[0].x} ${points[0].y}`;
+                  for (let i = 1; i < points.length; i++) {
+                    const curr = points[i];
+                    const prev = points[i - 1];
+                    const cx = (prev.x + curr.x) / 2;
+                    d += ` C ${cx} ${prev.y}, ${cx} ${curr.y}, ${curr.x} ${curr.y}`;
+                  }
+                  
+                  return (
+                    <>
+                      <path d={`${d} L ${points[points.length - 1].x} 110 L 0 110 Z`} fill="url(#trendGradient)" />
+                      <path d={d} fill="none" stroke="#335c52" strokeWidth="2.5" strokeLinecap="round" />
+                    </>
+                  );
+                })()}
                 
                 {/* Dots */}
                 {analytics.trend.map((t, i) => (
