@@ -24,6 +24,7 @@ import {
   HandCoins,
   ChevronDown,
   ChevronUp,
+  Settings,
 } from "lucide-react";
 
 type GroupData = {
@@ -211,6 +212,9 @@ export default function GroupDetailPage({
             {isTrip && <span className="chip bg-white/20 text-white"><Plane className="w-3 h-3" /> Trip</span>}
             <button onClick={() => router.push(`/groups/${groupId}/analytics`)} className="btn btn-ghost text-white/80">
               <BarChart3 className="w-4 h-4" />
+            </button>
+            <button onClick={() => router.push(`/groups/${groupId}/settings`)} className="btn btn-ghost text-white/80">
+              <Settings className="w-4 h-4" />
             </button>
           </div>
         </div>

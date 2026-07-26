@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, UserPlus, Ticket } from "lucide-react";
+import { ArrowLeft, UserPlus, Ticket, Share2, Copy, Check } from "lucide-react";
 
 export default function JoinGroupPage() {
   const router = useRouter();
@@ -34,9 +34,9 @@ export default function JoinGroupPage() {
         } else {
           toast.success("Joined the group! 🎉");
         }
-        router.push(`/groups/${data.groupId}`);
+        router.push("/groups");
       } else {
-        toast.error(data.error || "Failed to join group");
+        toast.error(data.detail || data.error || "Invalid invite code");
       }
     } catch {
       toast.error("Something went wrong");
@@ -55,13 +55,13 @@ export default function JoinGroupPage() {
         {/* Header */}
         <div className="px-6 pt-10 pb-6 flex items-center justify-between">
           <button 
-            onClick={() => router.back()}
+            onClick={() => router.push("/groups")}
             className="w-10 h-10 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-[#1a2b3c] hover:bg-gray-50 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           
-          <img src="/logo.png" alt="SplitWise Logo" className="h-8 object-contain" />
+          <img src="/logo.png" alt="SplitWise Logo" className="h-12 object-contain" />
           
           <div className="w-10 h-10"></div> {/* Spacer for centering */}
         </div>
@@ -108,6 +108,34 @@ export default function JoinGroupPage() {
               )}
             </button>
           </form>
+
+          {/* How it works */}
+          <div className="mt-10 bg-white rounded-[1.5rem] p-6 shadow-[0_4px_15px_rgba(0,0,0,0.03)] border border-gray-100">
+            <h3 className="text-[14px] font-bold text-[#1a2b3c] mb-4">How to get an invite code?</h3>
+            <div className="space-y-4">
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#f4f7f5] flex items-center justify-center shrink-0 text-[#528f80] font-bold text-[13px]">1</div>
+                <div>
+                  <p className="text-[13px] font-semibold text-[#1a2b3c]">Ask a group member</p>
+                  <p className="text-[11px] text-[#8e98a3] mt-0.5">Any member can share the group&apos;s invite code from the group settings page.</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#f4f7f5] flex items-center justify-center shrink-0 text-[#528f80] font-bold text-[13px]">2</div>
+                <div>
+                  <p className="text-[13px] font-semibold text-[#1a2b3c]">Enter the 6-character code</p>
+                  <p className="text-[11px] text-[#8e98a3] mt-0.5">Type the code above and hit &quot;Join Group&quot; to instantly become a member.</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#f4f7f5] flex items-center justify-center shrink-0 text-[#528f80] font-bold text-[13px]">3</div>
+                <div>
+                  <p className="text-[13px] font-semibold text-[#1a2b3c]">Start splitting!</p>
+                  <p className="text-[11px] text-[#8e98a3] mt-0.5">Once you join, you&apos;ll see all shared expenses and can start adding your own.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

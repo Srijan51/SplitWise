@@ -155,10 +155,10 @@ export default function GroupsPage() {
               </div>
             </div>
 
-            <div className="flex justify-end mt-[-30px]">
-              <button className="flex items-center gap-1.5 text-[11px] font-semibold text-[#528f80] bg-white border border-[#eef5f3] px-3 py-1.5 rounded-full shadow-sm hover:bg-gray-50">
+            <div className="flex justify-end mt-[-30px] relative z-20">
+              <Link href={`/groups/${featuredGroup.id}/settings`} className="flex items-center gap-1.5 text-[11px] font-semibold text-[#528f80] bg-white border border-[#eef5f3] px-3 py-1.5 rounded-full shadow-sm hover:bg-gray-50">
                 <Settings className="w-3.5 h-3.5" /> Group Settings
-              </button>
+              </Link>
             </div>
 
             {/* Stats Row */}

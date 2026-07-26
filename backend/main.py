@@ -151,6 +151,67 @@ async def get_group(group_id: str, user = Depends(get_current_user)):
         
     return group
 
+class GroupUpdate(BaseModel):
+    name: Optional[str] = None
+    type: Optional[str] = None
+    emoji: Optional[str] = None
+    accentColor: Optional[str] = None
+    currency: Optional[str] = None
+
+@app.patch("/api/groups/{group_id}")
+async def update_group(group_id: str, data: GroupUpdate, user = Depends(get_current_user)):
+    membership = await db.groupmember.find_first(where={"groupId": group_id, "userId": user.id})
+    if not membership:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    updated_group = await db.group.update(
+        where={"id": group_id},
+        data=update_data
+    )
+    return updated_group
+
+@app.delete("/api/groups/{group_id}")
+async def delete_group(group_id: str, user = Depends(get_current_user)):
+    membership = await db.groupmember.find_first(where={"groupId": group_id, "userId": user.id})
+    if not membership or membership.role != "ADMIN":
+        raise HTTPException(status_code=403, detail="Only admins can delete the group")
+        
+    await db.group.delete(where={"id": group_id})
+    return {"message": "Group deleted successfully"}
+
+class MemberRoleUpdate(BaseModel):
+    role: str
+
+@app.patch("/api/groups/{group_id}/members/{target_user_id}")
+async def update_member_role(group_id: str, target_user_id: str, data: MemberRoleUpdate, user = Depends(get_current_user)):
+    membership = await db.groupmember.find_first(where={"groupId": group_id, "userId": user.id})
+    if not membership or membership.role != "ADMIN":
+        raise HTTPException(status_code=403, detail="Only admins can change roles")
+        
+    updated = await db.groupmember.update(
+        where={"groupId_userId": {"groupId": group_id, "userId": target_user_id}},
+        data={"role": data.role}
+    )
+    return updated
+
+@app.delete("/api/groups/{group_id}/members/{target_user_id}")
+async def remove_member(group_id: str, target_user_id: str, user = Depends(get_current_user)):
+    # A user can remove themselves, or an ADMIN can remove someone
+    membership = await db.groupmember.find_first(where={"groupId": group_id, "userId": user.id})
+    if not membership:
+        raise HTTPException(status_code=403)
+        
+    if user.id != target_user_id and membership.role != "ADMIN":
+        raise HTTPException(status_code=403, detail="Only admins can remove other members")
+        
+    # Ideally, we should check if they have 0 balance before allowing removal.
+    # For now, just allow removal.
+    await db.groupmember.delete(
+        where={"groupId_userId": {"groupId": group_id, "userId": target_user_id}}
+    )
+    return {"message": "Member removed"}
+
 @app.get("/api/groups/{group_id}/balances")
 async def get_group_balances(group_id: str, user = Depends(get_current_user)):
     group = await db.group.find_unique(

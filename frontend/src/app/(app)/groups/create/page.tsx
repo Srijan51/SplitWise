@@ -37,7 +37,7 @@ export default function CreateGroupPage() {
       if (res.ok) {
         const data = await res.json();
         toast.success("Group created! 🎉");
-        router.push(`/groups/${data.id}`);
+        router.push("/groups");
       } else {
         const data = await res.json();
         toast.error(data.error || "Failed to create group");
