@@ -180,6 +180,20 @@ async def delete_group(group_id: str, user = Depends(get_current_user)):
     await db.group.delete(where={"id": group_id})
     return {"message": "Group deleted successfully"}
 
+@app.post("/api/groups/{group_id}/regenerate-code")
+async def regenerate_invite_code(group_id: str, user = Depends(get_current_user)):
+    membership = await db.groupmember.find_first(where={"groupId": group_id, "userId": user.id})
+    if not membership or membership.role != "ADMIN":
+        raise HTTPException(status_code=403, detail="Only admins can regenerate the invite code")
+    
+    import random, string
+    new_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    updated = await db.group.update(
+        where={"id": group_id},
+        data={"inviteCode": new_code}
+    )
+    return {"inviteCode": updated.inviteCode}
+
 class MemberRoleUpdate(BaseModel):
     role: str
 

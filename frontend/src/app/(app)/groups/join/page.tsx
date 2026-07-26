@@ -19,7 +19,7 @@ export default function JoinGroupPage() {
       const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
       const res = await fetch("http://localhost:8000/api/groups/join", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
@@ -47,22 +47,22 @@ export default function JoinGroupPage() {
 
   return (
     <div className="min-h-screen bg-[#fdfaf5] font-sans pb-24 overflow-x-hidden relative">
-      
+
       {/* Background Graphic (Subtle) */}
       <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-[#e5eee9] to-transparent z-0 opacity-50 pointer-events-none"></div>
 
       <div className="relative z-10 w-full max-w-lg mx-auto">
         {/* Header */}
         <div className="px-6 pt-10 pb-6 flex items-center justify-between">
-          <button 
+          <button
             onClick={() => router.push("/groups")}
             className="w-10 h-10 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-[#1a2b3c] hover:bg-gray-50 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          
-          <img src="/logo.png" alt="SplitWise Logo" className="h-12 object-contain" />
-          
+
+          <img src="/logo.png" alt="SplitWise Logo" className="h-58 object-contain" />
+
           <div className="w-10 h-10"></div> {/* Spacer for centering */}
         </div>
 
@@ -71,18 +71,18 @@ export default function JoinGroupPage() {
           <p className="text-[#8e98a3] text-[15px] font-medium mb-8">Got an invite code? Enter it below to join your friends 🤝</p>
 
           <form onSubmit={handleJoin} className="space-y-6">
-            
+
             <div className="bg-white rounded-[1.5rem] p-8 shadow-[0_4px_15px_rgba(0,0,0,0.03)] border border-gray-100 text-center relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-1 bg-[#335c52]"></div>
-              
+
               <div className="w-16 h-16 bg-[#f4f7f5] rounded-full mx-auto mb-6 flex items-center justify-center shadow-sm">
                 <Ticket className="w-8 h-8 text-[#528f80]" />
               </div>
-              
+
               <label className="block text-[12px] font-bold text-[#8e98a3] uppercase tracking-wider mb-4">
                 Invite Code
               </label>
-              
+
               <input
                 type="text"
                 placeholder="XXXXXX"

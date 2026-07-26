@@ -59,13 +59,13 @@ export default function CreateGroupPage() {
         {/* Header */}
         <div className="px-6 pt-10 pb-6 flex items-center justify-between">
           <button 
-            onClick={() => router.back()}
+            onClick={() => router.push("/groups")}
             className="w-10 h-10 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-[#1a2b3c] hover:bg-gray-50 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           
-          <img src="/logo.png" alt="SplitWise Logo" className="h-8 object-contain" />
+          <img src="/logo.png" alt="SplitWise Logo" className="h-12 object-contain" />
           
           <div className="w-10 h-10"></div> {/* Spacer for centering */}
         </div>

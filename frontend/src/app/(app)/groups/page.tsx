@@ -93,28 +93,8 @@ export default function GroupsPage() {
           </p>
         </div>
 
-        {/* Tab Toggle */}
-        <div className="mt-8 bg-white p-1 rounded-[1.25rem] flex items-center shadow-sm border border-gray-100 relative z-10">
-          <button
-            onClick={() => setActiveTab("my")}
-            className={`flex-1 py-3 text-sm font-semibold rounded-[1rem] transition-colors flex justify-center items-center gap-2 ${
-              activeTab === "my" ? "bg-[#f4f7f5] text-[#335c52]" : "text-[#8e98a3]"
-            }`}
-          >
-            <UsersIcon className="w-4 h-4" /> My Groups
-          </button>
-          <button
-            onClick={() => setActiveTab("discover")}
-            className={`flex-1 py-3 text-sm font-semibold rounded-[1rem] transition-colors flex justify-center items-center gap-2 ${
-              activeTab === "discover" ? "bg-[#f4f7f5] text-[#335c52]" : "text-[#8e98a3]"
-            }`}
-          >
-            <Search className="w-4 h-4" /> Discover Groups
-          </button>
-        </div>
-
         {/* Actions Grid for Groups */}
-        <div className="mt-6 grid grid-cols-2 gap-4 relative z-10">
+        <div className="mt-8 grid grid-cols-2 gap-4 relative z-10">
           <Link href="/groups/create" className="bg-white rounded-[1.25rem] p-4 flex flex-col items-center justify-center gap-2 shadow-sm border border-gray-100 hover:shadow-[0_4px_12px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all">
             <div className="w-12 h-12 rounded-full bg-[#f4f7f5] flex items-center justify-center text-[#528f80]">
               <UsersIcon className="w-6 h-6" />

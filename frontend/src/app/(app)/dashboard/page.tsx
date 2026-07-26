@@ -259,75 +259,7 @@ export default function DashboardPage() {
     </div>
   );
 
-  const renderAnalytics = () => (
-    <div className="hidden md:block px-6 md:px-10 mt-10 relative z-20">
-      <div className="bg-white rounded-[2rem] p-8 shadow-[0_10px_40px_rgba(0,0,0,0.05)] border border-gray-50 w-full hover:shadow-[0_15px_50px_rgba(0,0,0,0.08)] transition-shadow">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h3 className="font-bold text-[#1a2b3c] text-[18px]">Weekly Spending</h3>
-            <p className="text-[#8e98a3] text-[13px] font-medium mt-1">Your expenses across all groups</p>
-          </div>
-          <select className="bg-[#fdfaf5] border border-gray-100 rounded-xl px-4 py-2.5 text-sm font-bold text-[#1a2b3c] outline-none cursor-pointer hover:bg-gray-50 transition-colors">
-            <option>This Week</option>
-            <option>Last Week</option>
-            <option>This Month</option>
-          </select>
-        </div>
-        
-        <div className="flex items-end justify-between h-40 gap-3 mt-4">
-          {/* Mon */}
-          <div className="flex flex-col items-center flex-1 gap-3 group">
-            <div className="w-full bg-[#fdfaf5] rounded-t-xl relative flex items-end justify-center h-full overflow-hidden">
-              <div className="w-full bg-[#335c52] rounded-t-xl group-hover:bg-[#528f80] transition-colors" style={{ height: '40%' }}></div>
-            </div>
-            <span className="text-[12px] font-bold text-[#8e98a3] group-hover:text-[#1a2b3c] transition-colors">Mon</span>
-          </div>
-          {/* Tue */}
-          <div className="flex flex-col items-center flex-1 gap-3 group">
-            <div className="w-full bg-[#fdfaf5] rounded-t-xl relative flex items-end justify-center h-full overflow-hidden">
-              <div className="w-full bg-[#a8dfc8] rounded-t-xl group-hover:bg-[#528f80] transition-colors" style={{ height: '70%' }}></div>
-            </div>
-            <span className="text-[12px] font-bold text-[#8e98a3] group-hover:text-[#1a2b3c] transition-colors">Tue</span>
-          </div>
-          {/* Wed */}
-          <div className="flex flex-col items-center flex-1 gap-3 group">
-            <div className="w-full bg-[#fdfaf5] rounded-t-xl relative flex items-end justify-center h-full overflow-hidden">
-              <div className="w-full bg-[#335c52] rounded-t-xl group-hover:bg-[#528f80] transition-colors" style={{ height: '30%' }}></div>
-            </div>
-            <span className="text-[12px] font-bold text-[#8e98a3] group-hover:text-[#1a2b3c] transition-colors">Wed</span>
-          </div>
-          {/* Thu */}
-          <div className="flex flex-col items-center flex-1 gap-3 group">
-            <div className="w-full bg-[#fdfaf5] rounded-t-xl relative flex items-end justify-center h-full overflow-hidden">
-              <div className="w-full bg-[#335c52] rounded-t-xl group-hover:bg-[#528f80] transition-colors" style={{ height: '90%' }}></div>
-            </div>
-            <span className="text-[12px] font-bold text-[#8e98a3] group-hover:text-[#1a2b3c] transition-colors">Thu</span>
-          </div>
-          {/* Fri */}
-          <div className="flex flex-col items-center flex-1 gap-3 group">
-            <div className="w-full bg-[#fdfaf5] rounded-t-xl relative flex items-end justify-center h-full overflow-hidden">
-              <div className="w-full bg-[#a8dfc8] rounded-t-xl group-hover:bg-[#528f80] transition-colors" style={{ height: '50%' }}></div>
-            </div>
-            <span className="text-[12px] font-bold text-[#8e98a3] group-hover:text-[#1a2b3c] transition-colors">Fri</span>
-          </div>
-          {/* Sat */}
-          <div className="flex flex-col items-center flex-1 gap-3 group">
-            <div className="w-full bg-[#fdfaf5] rounded-t-xl relative flex items-end justify-center h-full overflow-hidden">
-              <div className="w-full bg-[#335c52] rounded-t-xl group-hover:bg-[#528f80] transition-colors" style={{ height: '20%' }}></div>
-            </div>
-            <span className="text-[12px] font-bold text-[#8e98a3] group-hover:text-[#1a2b3c] transition-colors">Sat</span>
-          </div>
-          {/* Sun */}
-          <div className="flex flex-col items-center flex-1 gap-3 group">
-            <div className="w-full bg-[#fdfaf5] rounded-t-xl relative flex items-end justify-center h-full overflow-hidden">
-              <div className="w-full bg-[#335c52] rounded-t-xl group-hover:bg-[#528f80] transition-colors" style={{ height: '60%' }}></div>
-            </div>
-            <span className="text-[12px] font-bold text-[#8e98a3] group-hover:text-[#1a2b3c] transition-colors">Sun</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+
 
   return (
     <div className="w-full bg-[#fdfaf5] min-h-screen relative flex flex-col md:flex-row overflow-hidden font-sans">
@@ -463,8 +395,7 @@ export default function DashboardPage() {
           <ActionButton icon={Receipt} label="Scan Receipt" badge="NEW" onClick={() => router.push("/scan-receipt")} />
         </div>
 
-        {/* Analytics Section (Desktop Only) */}
-        {renderAnalytics()}
+
 
         {/* Mobile-only wrappers (Hidden on Desktop) */}
         <div className="md:hidden">

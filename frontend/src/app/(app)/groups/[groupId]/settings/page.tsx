@@ -4,7 +4,7 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Trash2, Users, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Users, AlertTriangle, Copy, Check, Share2, Link2 } from "lucide-react";
 import { GROUP_EMOJIS, ACCENT_COLORS, getInitials } from "@/lib/utils";
 
 export default function GroupSettingsPage({
@@ -25,6 +25,7 @@ export default function GroupSettingsPage({
     emoji: "👥",
     accentColor: "#335c52",
   });
+  const [copied, setCopied] = useState(false);
 
   const fetchGroup = async () => {
     try {
@@ -261,7 +262,77 @@ export default function GroupSettingsPage({
             )}
           </form>
 
-          {/* Members Management */}
+          {/* Invite Members */}
+          <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
+            <h2 className="text-[15px] font-bold text-[#1a2b3c] mb-1 flex items-center gap-2">
+              <Link2 className="w-4 h-4" /> Invite Members
+            </h2>
+            <p className="text-[11px] text-[#8e98a3] mb-4">Share this code with friends so they can join your group.</p>
+            
+            <div className="bg-[#f4f7f5] rounded-2xl p-4 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold text-[#8e98a3] uppercase tracking-wider mb-1">Invite Code</p>
+                <p className="font-mono font-bold text-[22px] text-[#1a2b3c] tracking-[0.3em]">{group?.inviteCode}</p>
+              </div>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(group?.inviteCode || "");
+                  setCopied(true);
+                  toast.success("Invite code copied!");
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="w-10 h-10 rounded-full bg-[#335c52] text-white flex items-center justify-center hover:bg-[#2a4d44] transition-colors"
+              >
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+
+            <button
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: `Join ${group?.name} on SplitWise`,
+                    text: `Join my group "${group?.name}" on SplitWise! Use invite code: ${group?.inviteCode}`,
+                  }).catch(() => {});
+                } else {
+                  navigator.clipboard.writeText(
+                    `Join my group "${group?.name}" on SplitWise! Use invite code: ${group?.inviteCode}`
+                  );
+                  toast.success("Invite message copied to clipboard!");
+                }
+              }}
+              className="w-full mt-3 bg-[#f4f7f5] text-[#335c52] py-3 rounded-2xl font-bold text-[13px] flex items-center justify-center gap-2 hover:bg-[#e5eee9] transition-colors"
+            >
+              <Share2 className="w-4 h-4" /> Share Invite
+            </button>
+
+            {isAdmin && (
+              <button
+                onClick={async () => {
+                  if (!confirm("Regenerate invite code? The old code will stop working.")) return;
+                  try {
+                    const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+                    const res = await fetch(`http://localhost:8000/api/groups/${groupId}/regenerate-code`, {
+                      method: "POST",
+                      headers: { "Authorization": `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                      toast.success("New invite code generated!");
+                      fetchGroup();
+                    } else {
+                      toast.error("Failed to regenerate code");
+                    }
+                  } catch {
+                    toast.error("Error regenerating code");
+                  }
+                }}
+                className="w-full mt-2 bg-white text-[#8e98a3] border border-gray-100 py-3 rounded-2xl font-bold text-[13px] flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
+              >
+                🔄 Regenerate Code
+              </button>
+            )}
+          </div>
+
           <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
             <h2 className="text-[15px] font-bold text-[#1a2b3c] mb-4 flex items-center gap-2">
               <Users className="w-4 h-4" /> Members
