@@ -2,10 +2,10 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Trash2, Users, AlertTriangle, Copy, Check, Share2, Link2 } from "lucide-react";
 import { GROUP_EMOJIS, ACCENT_COLORS, getInitials } from "@/lib/utils";
+import { apiFetch } from "@/lib/api";
 
 export default function GroupSettingsPage({
   params,
@@ -29,14 +29,14 @@ export default function GroupSettingsPage({
 
   const fetchGroup = async () => {
     try {
-      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-      if (!token) return router.push("/login");
-      const headers = { "Authorization": `Bearer ${token}` };
-      
-      const userRes = await fetch("http://localhost:8000/api/users/me", { headers });
+      const userRes = await apiFetch("/api/users/me");
       if (userRes.ok) setSession({ user: await userRes.json() });
+      else {
+        router.push("/login");
+        return;
+      }
 
-      const res = await fetch(`http://localhost:8000/api/groups/${groupId}`, { headers });
+      const res = await apiFetch(`/api/groups/${groupId}`);
       if (res.ok) {
         const data = await res.json();
         setGroup(data);
@@ -62,13 +62,9 @@ export default function GroupSettingsPage({
     e.preventDefault();
     setSaving(true);
     try {
-      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-      const res = await fetch(`http://localhost:8000/api/groups/${groupId}`, {
+      const res = await apiFetch(`/api/groups/${groupId}`, {
         method: "PATCH",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
 
@@ -76,7 +72,8 @@ export default function GroupSettingsPage({
         toast.success("Settings updated!");
         fetchGroup();
       } else {
-        toast.error("Failed to update settings");
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.detail || "Failed to update settings");
       }
     } catch {
       toast.error("Network error");
@@ -87,20 +84,17 @@ export default function GroupSettingsPage({
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
-      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-      const res = await fetch(`http://localhost:8000/api/groups/${groupId}/members/${userId}`, {
+      const res = await apiFetch(`/api/groups/${groupId}/members/${userId}`, {
         method: "PATCH",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: newRole }),
       });
       if (res.ok) {
         toast.success("Role updated");
         fetchGroup();
       } else {
-        toast.error("Failed to update role");
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.detail || "Failed to update role");
       }
     } catch {
       toast.error("Error updating role");
@@ -110,10 +104,8 @@ export default function GroupSettingsPage({
   const handleRemoveMember = async (userId: string) => {
     if (!confirm("Are you sure you want to remove this member?")) return;
     try {
-      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-      const res = await fetch(`http://localhost:8000/api/groups/${groupId}/members/${userId}`, {
+      const res = await apiFetch(`/api/groups/${groupId}/members/${userId}`, {
         method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
         toast.success("Member removed");
@@ -123,7 +115,8 @@ export default function GroupSettingsPage({
           fetchGroup();
         }
       } else {
-        toast.error("Failed to remove member");
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.detail || "Failed to remove member");
       }
     } catch {
       toast.error("Error removing member");
@@ -133,16 +126,15 @@ export default function GroupSettingsPage({
   const handleDeleteGroup = async () => {
     if (!confirm("Are you absolutely sure you want to delete this group? This action cannot be undone.")) return;
     try {
-      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-      const res = await fetch(`http://localhost:8000/api/groups/${groupId}`, {
+      const res = await apiFetch(`/api/groups/${groupId}`, {
         method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
         toast.success("Group deleted");
         router.push("/groups");
       } else {
-        toast.error("Failed to delete group");
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.detail || "Failed to delete group");
       }
     } catch {
       toast.error("Error deleting group");
@@ -158,7 +150,7 @@ export default function GroupSettingsPage({
     );
   }
 
-  const myMembership = group.members.find((m: any) => m.userId === session?.user?.id);
+  const myMembership = group.members?.find((m: any) => m.userId === session?.user?.id);
   const isAdmin = myMembership?.role === "ADMIN";
 
   return (
@@ -170,7 +162,7 @@ export default function GroupSettingsPage({
         <div className="px-6 pt-10 pb-6 flex items-center justify-between">
           <button 
             onClick={() => router.back()}
-            className="w-10 h-10 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-[#1a2b3c] hover:bg-gray-50 transition-colors"
+            className="w-10 h-10 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-[#1a2b3c] hover:bg-gray-50 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -255,7 +247,7 @@ export default function GroupSettingsPage({
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full mt-4 bg-[#335c52] text-white py-3.5 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
+                className="w-full mt-4 bg-[#335c52] text-white py-3.5 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer"
               >
                 <Save className="w-4 h-4" /> {saving ? "Saving..." : "Save Changes"}
               </button>
@@ -281,7 +273,7 @@ export default function GroupSettingsPage({
                   toast.success("Invite code copied!");
                   setTimeout(() => setCopied(false), 2000);
                 }}
-                className="w-10 h-10 rounded-full bg-[#335c52] text-white flex items-center justify-center hover:bg-[#2a4d44] transition-colors"
+                className="w-10 h-10 rounded-full bg-[#335c52] text-white flex items-center justify-center hover:bg-[#2a4d44] transition-colors cursor-pointer"
               >
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               </button>
@@ -301,7 +293,7 @@ export default function GroupSettingsPage({
                   toast.success("Invite message copied to clipboard!");
                 }
               }}
-              className="w-full mt-3 bg-[#f4f7f5] text-[#335c52] py-3 rounded-2xl font-bold text-[13px] flex items-center justify-center gap-2 hover:bg-[#e5eee9] transition-colors"
+              className="w-full mt-3 bg-[#f4f7f5] text-[#335c52] py-3 rounded-2xl font-bold text-[13px] flex items-center justify-center gap-2 hover:bg-[#e5eee9] transition-colors cursor-pointer"
             >
               <Share2 className="w-4 h-4" /> Share Invite
             </button>
@@ -311,10 +303,8 @@ export default function GroupSettingsPage({
                 onClick={async () => {
                   if (!confirm("Regenerate invite code? The old code will stop working.")) return;
                   try {
-                    const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-                    const res = await fetch(`http://localhost:8000/api/groups/${groupId}/regenerate-code`, {
+                    const res = await apiFetch(`/api/groups/${groupId}/regenerate-code`, {
                       method: "POST",
-                      headers: { "Authorization": `Bearer ${token}` }
                     });
                     if (res.ok) {
                       toast.success("New invite code generated!");
@@ -326,7 +316,7 @@ export default function GroupSettingsPage({
                     toast.error("Error regenerating code");
                   }
                 }}
-                className="w-full mt-2 bg-white text-[#8e98a3] border border-gray-100 py-3 rounded-2xl font-bold text-[13px] flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
+                className="w-full mt-2 bg-white text-[#8e98a3] border border-gray-100 py-3 rounded-2xl font-bold text-[13px] flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 🔄 Regenerate Code
               </button>
@@ -338,17 +328,17 @@ export default function GroupSettingsPage({
               <Users className="w-4 h-4" /> Members
             </h2>
             <div className="space-y-4">
-              {group.members.map((m: any) => (
+              {(group.members || []).map((m: any) => (
                 <div key={m.userId} className="flex items-center justify-between border-b border-gray-50 pb-3 last:border-0 last:pb-0">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-[#f4f7f5] flex items-center justify-center font-bold text-[#528f80]">
-                      {getInitials(m.user.name)}
+                      {getInitials(m.user?.name || "User")}
                     </div>
                     <div>
                       <p className="text-[14px] font-bold text-[#1a2b3c]">
-                        {m.user.name} {m.userId === session?.user?.id && "(You)"}
+                        {m.user?.name || "User"} {m.userId === session?.user?.id && "(You)"}
                       </p>
-                      <p className="text-[11px] text-[#8e98a3]">{m.user.email}</p>
+                      <p className="text-[11px] text-[#8e98a3]">{m.user?.email || ""}</p>
                     </div>
                   </div>
                   
@@ -365,7 +355,7 @@ export default function GroupSettingsPage({
                         </select>
                         <button 
                           onClick={() => handleRemoveMember(m.userId)}
-                          className="w-7 h-7 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors"
+                          className="w-7 h-7 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -392,7 +382,7 @@ export default function GroupSettingsPage({
               </p>
               <button
                 onClick={handleDeleteGroup}
-                className="w-full bg-red-500 text-white py-3.5 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2 shadow-sm hover:bg-red-600 transition-all"
+                className="w-full bg-red-500 text-white py-3.5 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2 shadow-sm hover:bg-red-600 transition-all cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" /> Delete Group
               </button>
