@@ -1,48 +1,43 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { formatCurrency, getInitials } from "@/lib/utils";
+import { apiFetch } from "@/lib/api";
+import { BottomNav } from "@/components/BottomNav";
 import {
   ChevronLeft,
-  ChevronRight,
   TrendingUp,
-  Home,
-  Users as UsersIcon,
-  Plus,
-  FileText,
-  User,
   Sparkles,
   ArrowRight,
 } from "lucide-react";
 
 const CAT_COLORS: Record<string, string> = {
-  "Food": "#e8925a",
-  "General": "#528f80",
-  "Transport": "#6366f1",
-  "Groceries": "#22c55e",
-  "Hotel": "#a855f7",
-  "Entertainment": "#ec4899",
-  "Flights": "#0ea5e9",
-  "Utilities": "#eab308",
-  "Shopping": "#f97316",
-  "Stay": "#8b5cf6",
-  "Activities": "#14b8a6",
+  Food: "#e8925a",
+  General: "#528f80",
+  Transport: "#6366f1",
+  Groceries: "#22c55e",
+  Hotel: "#a855f7",
+  Entertainment: "#ec4899",
+  Flights: "#0ea5e9",
+  Utilities: "#eab308",
+  Shopping: "#f97316",
+  Stay: "#8b5cf6",
+  Activities: "#14b8a6",
 };
 
 const CAT_EMOJIS: Record<string, string> = {
-  "Food": "🍔",
-  "General": "📝",
-  "Transport": "🚗",
-  "Groceries": "🛒",
-  "Hotel": "🏨",
-  "Entertainment": "🎬",
-  "Flights": "✈️",
-  "Utilities": "⚡",
-  "Shopping": "🛍️",
-  "Stay": "🏠",
-  "Activities": "🎯",
+  Food: "🍔",
+  General: "📝",
+  Transport: "🚗",
+  Groceries: "🛒",
+  Hotel: "🏨",
+  Entertainment: "🎬",
+  Flights: "✈️",
+  Utilities: "⚡",
+  Shopping: "🛍️",
+  Stay: "🏠",
+  Activities: "🎯",
 };
 
 type Analytics = {
@@ -67,39 +62,50 @@ type Activity = {
   createdAt: string;
 };
 
-export default function ActivityPage() {
+function ActivityContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialGroupId = searchParams.get("group_id") || "all";
+
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "expenses">("overview");
   const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
-  const [selectedGroup, setSelectedGroup] = useState<string>("all");
+  const [selectedGroup, setSelectedGroup] = useState<string>(initialGroupId);
+
+  useEffect(() => {
+    const paramId = searchParams.get("group_id");
+    if (paramId) {
+      setSelectedGroup(paramId);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-      if (!token) return router.push("/login");
-      const headers = { "Authorization": `Bearer ${token}` };
+      try {
+        const queryParams = selectedGroup !== "all" ? `?group_id=${selectedGroup}` : "";
 
-      const queryParams = selectedGroup !== "all" ? `?group_id=${selectedGroup}` : "";
+        const [analyticsRes, activitiesRes, groupsRes] = await Promise.all([
+          apiFetch(`/api/analytics${queryParams}`),
+          apiFetch(`/api/activities${queryParams}`),
+          apiFetch("/api/groups"),
+        ]);
 
-      const [analyticsRes, activitiesRes, groupsRes] = await Promise.all([
-        fetch(`http://localhost:8000/api/analytics${queryParams}`, { headers }),
-        fetch(`http://localhost:8000/api/activities${queryParams}`, { headers }),
-        fetch("http://localhost:8000/api/groups", { headers }),
-      ]);
-
-      if (analyticsRes.ok) setAnalytics(await analyticsRes.json());
-      if (activitiesRes.ok) setActivities(await activitiesRes.json());
-      if (groupsRes.ok) {
-        const groupsData = await groupsRes.json();
-        setGroups(groupsData);
+        if (analyticsRes.ok) setAnalytics(await analyticsRes.json());
+        if (activitiesRes.ok) setActivities(await activitiesRes.json());
+        if (groupsRes.ok) {
+          const groupsData = await groupsRes.json();
+          setGroups(groupsData);
+        }
+      } catch (err) {
+        console.error("Failed to load activity:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchData();
-  }, [router, selectedGroup]);
+  }, [selectedGroup]);
 
   if (loading) {
     return (
@@ -110,10 +116,12 @@ export default function ActivityPage() {
   }
 
   const totalSettledPending = (analytics?.settled || 0) + (analytics?.pending || 0);
-  const settledPct = totalSettledPending > 0 ? Math.round((analytics?.settled || 0) / totalSettledPending * 100) : 0;
+  const settledPct =
+    totalSettledPending > 0
+      ? Math.round(((analytics?.settled || 0) / totalSettledPending) * 100)
+      : 0;
   const pendingPct = 100 - settledPct;
 
-  // Find max for trend chart
   const maxTrend = Math.max(...(analytics?.trend || []).map((t) => t.amount), 1);
 
   return (
@@ -121,7 +129,10 @@ export default function ActivityPage() {
       {/* Header */}
       <div className="relative pt-4 px-6">
         <div className="flex items-center justify-between relative z-10 mt-2">
-          <button onClick={() => router.push("/dashboard")} className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors">
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors"
+          >
             <ChevronLeft className="w-5 h-5 text-gray-700" />
           </button>
           <img src="/logo.png" alt="SplitWise Logo" className="h-10 object-contain" />
@@ -129,16 +140,28 @@ export default function ActivityPage() {
         </div>
 
         <div className="mt-6 relative z-10 flex flex-col items-center text-center">
-          <h1 className="text-[26px] font-bold text-[#1a2b3c] tracking-tight">Activity & Analytics</h1>
-          
-          <select 
+          <h1 className="text-[26px] font-bold text-[#1a2b3c] tracking-tight">
+            Activity & Analytics
+          </h1>
+
+          <select
             value={selectedGroup}
-            onChange={(e) => setSelectedGroup(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSelectedGroup(val);
+              if (val === "all") {
+                router.replace("/activity");
+              } else {
+                router.replace(`/activity?group_id=${val}`);
+              }
+            }}
             className="mt-3 bg-white border border-gray-100 rounded-xl px-4 py-2 text-[13px] font-bold text-[#335c52] outline-none cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
           >
             <option value="all">All Groups</option>
-            {groups.map(g => (
-              <option key={g.id} value={g.id}>{g.name}</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
             ))}
           </select>
         </div>
@@ -173,23 +196,30 @@ export default function ActivityPage() {
               <p className="text-[2rem] font-bold text-[#1a2b3c] tracking-tight mt-1">
                 {formatCurrency(analytics.totalSpent)}
               </p>
-              <p className="text-[12px] text-[#8e98a3] mt-0.5">Across {analytics.totalExpenses} expenses</p>
+              <p className="text-[12px] text-[#8e98a3] mt-0.5">
+                Across {analytics.totalExpenses} expenses
+              </p>
               <div className="flex items-center gap-1.5 mt-3">
                 <span className="flex items-center gap-1 text-[11px] font-bold text-[#528f80] bg-[#eef5f3] px-2.5 py-1 rounded-full">
-                  <TrendingUp className="w-3 h-3" /> {selectedGroup === "all" ? "All groups combined" : groups.find(g => g.id === selectedGroup)?.name}
+                  <TrendingUp className="w-3 h-3" />{" "}
+                  {selectedGroup === "all"
+                    ? "All groups combined"
+                    : groups.find((g) => g.id === selectedGroup)?.name}
                 </span>
               </div>
             </div>
-            {/* Couch/Plant illustration */}
-            <div className="absolute top-0 right-0 w-[160px] h-[120px] pointer-events-none opacity-80" style={{
-              backgroundImage: "url('/hero-couch.png')",
-              backgroundSize: "contain",
-              backgroundPosition: "top right",
-              backgroundRepeat: "no-repeat",
-              mixBlendMode: "multiply",
-              maskImage: "radial-gradient(circle at 70% 40%, black 30%, transparent 65%)",
-              WebkitMaskImage: "radial-gradient(circle at 70% 40%, black 30%, transparent 65%)",
-            }} />
+            <div
+              className="absolute top-0 right-0 w-[160px] h-[120px] pointer-events-none opacity-80"
+              style={{
+                backgroundImage: "url('/hero-couch.png')",
+                backgroundSize: "contain",
+                backgroundPosition: "top right",
+                backgroundRepeat: "no-repeat",
+                mixBlendMode: "multiply",
+                maskImage: "radial-gradient(circle at 70% 40%, black 30%, transparent 65%)",
+                WebkitMaskImage: "radial-gradient(circle at 70% 40%, black 30%, transparent 65%)",
+              }}
+            />
           </div>
 
           {/* Spending by Category + Top Categories */}
@@ -202,13 +232,15 @@ export default function ActivityPage() {
                   {analytics.categories.length > 0 ? (
                     (() => {
                       let offset = 0;
-                      return analytics.categories.slice(0, 5).map((cat, i) => {
+                      return analytics.categories.slice(0, 5).map((cat) => {
                         const dash = cat.percentage;
                         const gap = 100 - dash;
                         const el = (
                           <circle
                             key={cat.name}
-                            cx="18" cy="18" r="15.5"
+                            cx="18"
+                            cy="18"
+                            r="15.5"
                             fill="none"
                             stroke={CAT_COLORS[cat.name] || "#8e98a3"}
                             strokeWidth="3"
@@ -227,16 +259,23 @@ export default function ActivityPage() {
                   )}
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <p className="text-[10px] font-bold text-[#335c52]">{formatCurrency(analytics.totalSpent)}</p>
+                  <p className="text-[10px] font-bold text-[#335c52]">
+                    {formatCurrency(analytics.totalSpent)}
+                  </p>
                   <p className="text-[8px] text-[#8e98a3]">Total</p>
                 </div>
               </div>
               <div className="space-y-1.5">
                 {analytics.categories.slice(0, 5).map((cat) => (
                   <div key={cat.name} className="flex items-center gap-2 text-[10px]">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: CAT_COLORS[cat.name] || "#8e98a3" }}></span>
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: CAT_COLORS[cat.name] || "#8e98a3" }}
+                    ></span>
                     <span className="text-[#1a2b3c] font-medium truncate flex-1">{cat.name}</span>
-                    <span className="text-[#8e98a3] font-semibold">{formatCurrency(cat.amount)} ({cat.percentage}%)</span>
+                    <span className="text-[#8e98a3] font-semibold">
+                      {formatCurrency(cat.amount)} ({cat.percentage}%)
+                    </span>
                   </div>
                 ))}
               </div>
@@ -268,21 +307,44 @@ export default function ActivityPage() {
               <span className="text-[11px] font-medium text-[#8e98a3]">Last 14 days</span>
             </div>
             <div className="relative h-[120px]">
-              <svg viewBox={`0 0 ${(analytics.trend.length - 1) * 50} 120`} className="w-full h-full" preserveAspectRatio="none">
-                {/* Grid lines */}
-                <line x1="0" y1="30" x2={(analytics.trend.length - 1) * 50} y2="30" stroke="#f0f4f2" strokeWidth="1" />
-                <line x1="0" y1="60" x2={(analytics.trend.length - 1) * 50} y2="60" stroke="#f0f4f2" strokeWidth="1" />
-                <line x1="0" y1="90" x2={(analytics.trend.length - 1) * 50} y2="90" stroke="#f0f4f2" strokeWidth="1" />
-                
-                {/* Path generation with simple bezier curves */}
+              <svg
+                viewBox={`0 0 ${(analytics.trend.length - 1) * 50} 120`}
+                className="w-full h-full"
+                preserveAspectRatio="none"
+              >
+                <line
+                  x1="0"
+                  y1="30"
+                  x2={(analytics.trend.length - 1) * 50}
+                  y2="30"
+                  stroke="#f0f4f2"
+                  strokeWidth="1"
+                />
+                <line
+                  x1="0"
+                  y1="60"
+                  x2={(analytics.trend.length - 1) * 50}
+                  y2="60"
+                  stroke="#f0f4f2"
+                  strokeWidth="1"
+                />
+                <line
+                  x1="0"
+                  y1="90"
+                  x2={(analytics.trend.length - 1) * 50}
+                  y2="90"
+                  stroke="#f0f4f2"
+                  strokeWidth="1"
+                />
+
                 {(() => {
                   const points = analytics.trend.map((t, i) => ({
                     x: i * 50,
-                    y: 110 - (t.amount / maxTrend) * 90
+                    y: 110 - (t.amount / maxTrend) * 90,
                   }));
-                  
+
                   if (points.length === 0) return null;
-                  
+
                   let d = `M ${points[0].x} ${points[0].y}`;
                   for (let i = 1; i < points.length; i++) {
                     const curr = points[i];
@@ -290,18 +352,34 @@ export default function ActivityPage() {
                     const cx = (prev.x + curr.x) / 2;
                     d += ` C ${cx} ${prev.y}, ${cx} ${curr.y}, ${curr.x} ${curr.y}`;
                   }
-                  
+
                   return (
                     <>
-                      <path d={`${d} L ${points[points.length - 1].x} 110 L 0 110 Z`} fill="url(#trendGradient)" />
-                      <path d={d} fill="none" stroke="#335c52" strokeWidth="2.5" strokeLinecap="round" />
+                      <path
+                        d={`${d} L ${points[points.length - 1].x} 110 L 0 110 Z`}
+                        fill="url(#trendGradient)"
+                      />
+                      <path
+                        d={d}
+                        fill="none"
+                        stroke="#335c52"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                      />
                     </>
                   );
                 })()}
-                
-                {/* Dots */}
+
                 {analytics.trend.map((t, i) => (
-                  <circle key={i} cx={i * 50} cy={110 - (t.amount / maxTrend) * 90} r="3" fill="white" stroke="#335c52" strokeWidth="2" />
+                  <circle
+                    key={i}
+                    cx={i * 50}
+                    cy={110 - (t.amount / maxTrend) * 90}
+                    r="3"
+                    fill="white"
+                    stroke="#335c52"
+                    strokeWidth="2"
+                  />
                 ))}
 
                 <defs>
@@ -313,9 +391,13 @@ export default function ActivityPage() {
               </svg>
             </div>
             <div className="flex justify-between mt-2 px-1">
-              {analytics.trend.filter((_, i) => i % 3 === 0 || i === analytics.trend.length - 1).map((t, i) => (
-                <span key={i} className="text-[9px] text-[#8e98a3] font-medium">{t.date}</span>
-              ))}
+              {analytics.trend
+                .filter((_, i) => i % 3 === 0 || i === analytics.trend.length - 1)
+                .map((t, i) => (
+                  <span key={i} className="text-[9px] text-[#8e98a3] font-medium">
+                    {t.date}
+                  </span>
+                ))}
             </div>
           </div>
 
@@ -330,11 +412,17 @@ export default function ActivityPage() {
                       <div className="w-7 h-7 rounded-full bg-[#f4f7f5] flex items-center justify-center text-[10px] font-bold text-[#528f80]">
                         {getInitials(s.name)}
                       </div>
-                      <span className={`text-[12px] font-semibold ${s.isYou ? "text-[#335c52]" : "text-[#1a2b3c]"}`}>
+                      <span
+                        className={`text-[12px] font-semibold ${
+                          s.isYou ? "text-[#335c52]" : "text-[#1a2b3c]"
+                        }`}
+                      >
                         {s.isYou ? "You" : s.name.split(" ")[0]}
                       </span>
                     </div>
-                    <span className="text-[12px] font-bold text-[#1a2b3c]">{formatCurrency(s.amount)}</span>
+                    <span className="text-[12px] font-bold text-[#1a2b3c]">
+                      {formatCurrency(s.amount)}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -345,7 +433,13 @@ export default function ActivityPage() {
               <div className="relative w-[90px] h-[90px] mx-auto mb-3">
                 <svg viewBox="0 0 36 36" className="w-full h-full">
                   <circle cx="18" cy="18" r="14" fill="none" stroke="#eef5f3" strokeWidth="4" />
-                  <circle cx="18" cy="18" r="14" fill="none" stroke="#528f80" strokeWidth="4"
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#528f80"
+                    strokeWidth="4"
                     strokeDasharray={`${settledPct} ${pendingPct}`}
                     strokeDashoffset="25"
                     strokeLinecap="round"
@@ -353,7 +447,9 @@ export default function ActivityPage() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <p className="text-[11px] font-bold text-[#e8925a]">{formatCurrency(analytics.pending)}</p>
+                  <p className="text-[11px] font-bold text-[#e8925a]">
+                    {formatCurrency(analytics.pending)}
+                  </p>
                   <p className="text-[8px] text-[#8e98a3]">Pending</p>
                 </div>
               </div>
@@ -361,15 +457,22 @@ export default function ActivityPage() {
                 <div className="flex items-center gap-2 text-[10px]">
                   <span className="w-2 h-2 rounded-full bg-[#528f80]"></span>
                   <span className="text-[#1a2b3c] font-medium">Settled</span>
-                  <span className="ml-auto text-[#8e98a3]">{formatCurrency(analytics.settled)} ({settledPct}%)</span>
+                  <span className="ml-auto text-[#8e98a3]">
+                    {formatCurrency(analytics.settled)} ({settledPct}%)
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-[10px]">
                   <span className="w-2 h-2 rounded-full bg-[#e8925a]"></span>
                   <span className="text-[#1a2b3c] font-medium">Pending</span>
-                  <span className="ml-auto text-[#8e98a3]">{formatCurrency(analytics.pending)} ({pendingPct}%)</span>
+                  <span className="ml-auto text-[#8e98a3]">
+                    {formatCurrency(analytics.pending)} ({pendingPct}%)
+                  </span>
                 </div>
               </div>
-              <button onClick={() => router.push("/groups")} className="text-[11px] font-semibold text-[#528f80] flex items-center mt-3 hover:underline">
+              <button
+                onClick={() => router.push("/groups")}
+                className="text-[11px] font-semibold text-[#528f80] flex items-center mt-3 hover:underline"
+              >
                 View balances <ArrowRight className="w-3 h-3 ml-0.5" />
               </button>
             </div>
@@ -378,14 +481,17 @@ export default function ActivityPage() {
           {/* AI Insight Banner */}
           <div className="bg-gradient-to-r from-[#eff6f3] to-[#e4f0ea] rounded-[1.25rem] p-4 flex items-center relative overflow-hidden border border-[#d2e4dd] shadow-sm">
             <div className="w-[70px] h-[70px] flex-shrink-0 relative -ml-2 -mb-6">
-              <div className="absolute inset-0 bg-no-repeat" style={{
-                backgroundImage: "url('/ai-cat.png')",
-                backgroundSize: "contain",
-                backgroundPosition: "bottom center",
-                mixBlendMode: "multiply",
-                maskImage: "radial-gradient(circle at center, black 45%, transparent 70%)",
-                WebkitMaskImage: "radial-gradient(circle at center, black 45%, transparent 70%)",
-              }} />
+              <div
+                className="absolute inset-0 bg-no-repeat"
+                style={{
+                  backgroundImage: "url('/ai-cat.png')",
+                  backgroundSize: "contain",
+                  backgroundPosition: "bottom center",
+                  mixBlendMode: "multiply",
+                  maskImage: "radial-gradient(circle at center, black 45%, transparent 70%)",
+                  WebkitMaskImage: "radial-gradient(circle at center, black 45%, transparent 70%)",
+                }}
+              />
             </div>
             <div className="ml-2 flex-1 relative z-10">
               <h3 className="text-[12px] font-bold text-[#1a2b3c]">AI Insight ✨</h3>
@@ -395,8 +501,11 @@ export default function ActivityPage() {
                   : "Add some expenses to get personalized insights!"}
               </p>
             </div>
-            <button className="bg-[#335c52] text-white text-[10px] font-bold px-3 py-2 rounded-full flex items-center gap-1 flex-shrink-0 relative z-10 shadow-sm hover:bg-[#2a4d44]">
-              <Sparkles className="w-3 h-3 text-[#a8dfc8]" /> View AI Tips
+            <button
+              onClick={() => router.push("/groups")}
+              className="bg-[#335c52] text-white text-[10px] font-bold px-3 py-2 rounded-full flex items-center gap-1 flex-shrink-0 relative z-10 shadow-sm hover:bg-[#2a4d44]"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#a8dfc8]" /> View Details
             </button>
           </div>
         </div>
@@ -412,7 +521,10 @@ export default function ActivityPage() {
             </div>
           ) : (
             activities.map((act) => (
-              <div key={act.id} className="bg-white rounded-[1.25rem] p-4 shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-shadow">
+              <div
+                key={act.id}
+                className="bg-white rounded-[1.25rem] p-4 shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-shadow"
+              >
                 <div className="w-11 h-11 rounded-full bg-[#f4f7f5] flex items-center justify-center text-lg shrink-0">
                   {act.groupEmoji || "📄"}
                 </div>
@@ -423,11 +535,23 @@ export default function ActivityPage() {
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className={`text-[13px] font-bold ${act.myShare > 0 ? "text-[#335c52]" : act.myShare < 0 ? "text-[#e75a5a]" : "text-[#8e98a3]"}`}>
-                    {act.myShare > 0 ? "+" : ""}{act.myShare === 0 ? "—" : formatCurrency(Math.abs(act.myShare))}
+                  <p
+                    className={`text-[13px] font-bold ${
+                      act.myShare > 0
+                        ? "text-[#335c52]"
+                        : act.myShare < 0
+                        ? "text-[#e75a5a]"
+                        : "text-[#8e98a3]"
+                    }`}
+                  >
+                    {act.myShare > 0 ? "+" : ""}
+                    {act.myShare === 0 ? "—" : formatCurrency(Math.abs(act.myShare))}
                   </p>
                   <p className="text-[10px] text-[#8e98a3] mt-0.5">
-                    {new Date(act.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                    {new Date(act.createdAt).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                    })}
                   </p>
                 </div>
               </div>
@@ -436,31 +560,22 @@ export default function ActivityPage() {
         </div>
       )}
 
-      {/* Bottom Floating Nav */}
-      <div className="fixed bottom-0 left-0 right-0 h-[80px] bg-[#fdfaf5] border-t border-gray-100 px-6 flex justify-between items-center z-50 rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.03)] pb-2">
-        <Link href="/dashboard" className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-[#335c52]">
-          <Home className="w-[22px] h-[22px]" />
-          <span className="text-[10px] font-medium">Dashboard</span>
-        </Link>
-        <Link href="/groups" className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-[#335c52]">
-          <UsersIcon className="w-[22px] h-[22px]" />
-          <span className="text-[10px] font-medium">Groups</span>
-        </Link>
-        <Link href="/add-expense" className="flex flex-col items-center -mt-8">
-          <div className="w-[56px] h-[56px] bg-[#335c52] rounded-full flex items-center justify-center text-white shadow-lg shadow-[#335c52]/30 hover:scale-105 transition-transform border-4 border-white">
-            <Plus className="w-6 h-6" />
-          </div>
-          <span className="text-[10px] font-medium text-gray-500 mt-1">Add Expense</span>
-        </Link>
-        <Link href="/activity" className="flex flex-col items-center gap-1.5 text-[#335c52]">
-          <FileText className="w-[22px] h-[22px]" />
-          <span className="text-[10px] font-bold">Activity</span>
-        </Link>
-        <Link href="/profile" className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-[#335c52]">
-          <User className="w-[22px] h-[22px]" />
-          <span className="text-[10px] font-medium">Profile</span>
-        </Link>
-      </div>
+      {/* Mobile Bottom Navigation */}
+      <BottomNav active="activity" />
     </div>
+  );
+}
+
+export default function ActivityPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#fdfaf5]">
+          <div className="w-8 h-8 border-4 border-[#335c52]/30 border-t-[#335c52] rounded-full animate-spin"></div>
+        </div>
+      }
+    >
+      <ActivityContent />
+    </Suspense>
   );
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { GROUP_EMOJIS, ACCENT_COLORS } from "@/lib/utils";
 import { ArrowLeft, Sparkles, Plane, RefreshCw, Calendar, UsersIcon, Check } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
 export default function CreateGroupPage() {
   const router = useRouter();
@@ -24,23 +25,20 @@ export default function CreateGroupPage() {
     setLoading(true);
 
     try {
-      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-      const res = await fetch("http://localhost:8000/api/groups", {
+      const res = await apiFetch("/api/groups", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(form),
       });
 
       if (res.ok) {
-        const data = await res.json();
         toast.success("Group created! 🎉");
         router.push("/groups");
       } else {
-        const data = await res.json();
-        toast.error(data.error || "Failed to create group");
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.detail || data.error || "Failed to create group");
       }
     } catch {
       toast.error("Failed to create group");

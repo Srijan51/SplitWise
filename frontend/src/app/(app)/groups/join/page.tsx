@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, UserPlus, Ticket, Share2, Copy, Check } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
 export default function JoinGroupPage() {
   const router = useRouter();
@@ -16,13 +17,9 @@ export default function JoinGroupPage() {
     setLoading(true);
 
     try {
-      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-      const res = await fetch("http://localhost:8000/api/groups/join", {
+      const res = await apiFetch("/api/groups/join", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ inviteCode: code.trim() }),
       });
 
@@ -56,12 +53,12 @@ export default function JoinGroupPage() {
         <div className="px-6 pt-10 pb-6 flex items-center justify-between">
           <button
             onClick={() => router.push("/groups")}
-            className="w-10 h-10 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-[#1a2b3c] hover:bg-gray-50 transition-colors"
+            className="w-10 h-10 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-[#1a2b3c] hover:bg-gray-50 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
 
-          <img src="/logo.png" alt="SplitWise Logo" className="h-58 object-contain" />
+          <img src="/logo.png" alt="SplitWise Logo" className="h-10 object-contain" />
 
           <div className="w-10 h-10"></div> {/* Spacer for centering */}
         </div>
