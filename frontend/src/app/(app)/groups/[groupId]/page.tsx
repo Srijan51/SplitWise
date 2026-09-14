@@ -2,24 +2,21 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useSocket } from "@/components/providers/socket-provider";
 import { formatCurrency, getInitials, getRelativeTime, EXPENSE_CATEGORIES } from "@/lib/utils";
-import type { GroupBalances, SimplifiedDebt } from "@/lib/balance-calculator";
+import type { GroupBalances, SimplifiedDebt, MemberBalance } from "@/lib/balance-calculator";
+import { apiFetch } from "@/lib/api";
 import {
   ArrowLeft,
   Plus,
   Users,
-  TrendingUp,
-  TrendingDown,
   ArrowRight,
   Copy,
   Check,
   Plane,
   Wallet,
-  Receipt,
   BarChart3,
   HandCoins,
   ChevronDown,
@@ -80,14 +77,7 @@ export default function GroupDetailPage({
 
   const fetchGroup = async () => {
     try {
-      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-      const headers = { "Authorization": `Bearer ${token}` };
-      
-      const userRes = await fetch("http://localhost:8000/api/users/me", { headers });
+      const userRes = await apiFetch("/api/users/me");
       if (userRes.ok) {
         setSession({ user: await userRes.json() });
       } else {
@@ -96,8 +86,8 @@ export default function GroupDetailPage({
       }
 
       const [groupRes, balRes] = await Promise.all([
-        fetch(`http://localhost:8000/api/groups/${groupId}`, { headers }),
-        fetch(`http://localhost:8000/api/groups/${groupId}/balances`, { headers }),
+        apiFetch(`/api/groups/${groupId}`),
+        apiFetch(`/api/groups/${groupId}/balances`),
       ]);
       if (groupRes.ok) setGroup(await groupRes.json());
       if (balRes.ok) setBalances(await balRes.json());
@@ -119,21 +109,20 @@ export default function GroupDetailPage({
 
     const handleExpenseCreated = () => fetchGroup();
     const handleBalanceUpdated = async () => {
-      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-      const res = await fetch(`http://localhost:8000/api/groups/${groupId}/balances`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
+      const res = await apiFetch(`/api/groups/${groupId}/balances`);
       if (res.ok) setBalances(await res.json());
     };
     const handleSettlementUpdate = () => fetchGroup();
 
     socket.on("expense:created", handleExpenseCreated);
+    socket.on("expense_added", handleExpenseCreated);
     socket.on("balance:updated", handleBalanceUpdated);
     socket.on("settlement:created", handleSettlementUpdate);
     socket.on("settlement:updated", handleSettlementUpdate);
 
     return () => {
       socket.off("expense:created", handleExpenseCreated);
+      socket.off("expense_added", handleExpenseCreated);
       socket.off("balance:updated", handleBalanceUpdated);
       socket.off("settlement:created", handleSettlementUpdate);
       socket.off("settlement:updated", handleSettlementUpdate);
@@ -152,13 +141,9 @@ export default function GroupDetailPage({
 
   const confirmSettlement = async (settlementId: string) => {
     try {
-      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-      const res = await fetch(`http://localhost:8000/api/groups/${groupId}/settlements`, {
+      const res = await apiFetch(`/api/groups/${groupId}/settlements`, {
         method: "PATCH",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ settlementId, confirmed: true }),
       });
       if (res.ok) {
@@ -192,7 +177,8 @@ export default function GroupDetailPage({
   }
 
   const isTrip = group.type === "TRIP";
-  const myBalance = balances?.memberBalances.find((m) => m.userId === session?.user?.id)?.netBalance ?? 0;
+  const myBalance =
+    balances?.memberBalances.find((m: MemberBalance) => m.userId === session?.user?.id)?.netBalance ?? 0;
   const pendingSettlements = (group.settlements || []).filter(
     (s) => !s.confirmedByRecipient && s.toUser.id === session?.user?.id
   );
@@ -210,10 +196,14 @@ export default function GroupDetailPage({
           </button>
           <div className="flex items-center gap-2">
             {isTrip && <span className="chip bg-white/20 text-white"><Plane className="w-3 h-3" /> Trip</span>}
-            <button onClick={() => router.push(`/groups/${groupId}/analytics`)} className="btn btn-ghost text-white/80">
+            <button
+              onClick={() => router.push(`/activity?group_id=${groupId}`)}
+              className="btn btn-ghost text-white/80"
+              title="Analytics"
+            >
               <BarChart3 className="w-4 h-4" />
             </button>
-            <button onClick={() => router.push(`/groups/${groupId}/settings`)} className="btn btn-ghost text-white/80">
+            <button onClick={() => router.push(`/groups/${groupId}/settings`)} className="btn btn-ghost text-white/80" title="Settings">
               <Settings className="w-4 h-4" />
             </button>
           </div>
@@ -399,7 +389,7 @@ export default function GroupDetailPage({
             <h3 className="text-sm font-semibold" style={{ color: "var(--color-text-secondary)" }}>
               Member Balances
             </h3>
-            {balances.memberBalances.map((mb) => (
+            {balances.memberBalances.map((mb: MemberBalance) => (
               <div key={mb.userId} className="glass-card p-3 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold"
                   style={{ background: "var(--color-surface-hover)", color: "var(--color-text-secondary)" }}
@@ -428,7 +418,7 @@ export default function GroupDetailPage({
                 <h3 className="text-sm font-semibold mt-4" style={{ color: "var(--color-text-secondary)" }}>
                   Simplified Debts
                 </h3>
-                {balances.simplifiedDebts.map((debt, i) => (
+                {balances.simplifiedDebts.map((debt: SimplifiedDebt, i: number) => (
                   <div key={i} className="glass-card p-3 flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
                       style={{ background: "oklch(0.63 0.24 25 / 0.15)", color: "var(--color-danger)" }}
@@ -487,18 +477,14 @@ function SettleTab({
   const [settling, setSettling] = useState<string | null>(null);
 
   const myDebts =
-    balances?.simplifiedDebts.filter((d) => d.fromUserId === userId) ?? [];
+    balances?.simplifiedDebts.filter((d: SimplifiedDebt) => d.fromUserId === userId) ?? [];
 
   const handleSettle = async (debt: SimplifiedDebt) => {
     setSettling(debt.toUserId);
     try {
-      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-      const res = await fetch(`http://localhost:8000/api/groups/${group.id}/settlements`, {
+      const res = await apiFetch(`/api/groups/${group.id}/settlements`, {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           toUserId: debt.toUserId,
           amount: debt.amount,
@@ -533,7 +519,7 @@ function SettleTab({
       <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
         These are the minimum transactions needed to settle all debts:
       </p>
-      {myDebts.map((debt, i) => (
+      {myDebts.map((debt: SimplifiedDebt, i: number) => (
         <motion.div
           key={i}
           initial={{ opacity: 0, y: 10 }}

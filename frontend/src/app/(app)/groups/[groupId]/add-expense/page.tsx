@@ -2,17 +2,16 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { formatCurrency, EXPENSE_CATEGORIES } from "@/lib/utils";
+import { apiFetch } from "@/lib/api";
 import {
   ArrowLeft,
-  Check,
-  Receipt,
-  User,
   DollarSign,
+  Receipt,
   SplitSquareVertical,
+  User,
 } from "lucide-react";
 
 type Member = {
@@ -29,7 +28,7 @@ export default function AddExpensePage({
 }) {
   const { groupId } = use(params);
   const router = useRouter();
-  const { data: session } = useSession();
+  const [currentUser, setCurrentUser] = useState<{ id: string; name: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
@@ -41,7 +40,7 @@ export default function AddExpensePage({
     paidById: "",
     splitType: "EQUAL" as SplitType,
   });
-  
+
   // AI Scanning state
   const [scanning, setScanning] = useState(false);
 
@@ -49,27 +48,38 @@ export default function AddExpensePage({
   const [splitValues, setSplitValues] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const fetchMembers = async () => {
-      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-      const res = await fetch(`http://localhost:8000/api/groups/${groupId}`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setMembers(data.members);
-        const allIds = new Set(data.members.map((m: Member) => m.user.id));
-        setSelectedMembers(allIds);
-        setForm((f) => ({ ...f, paidById: session?.user?.id || data.members[0]?.user.id }));
-        // Init split values
-        const vals: Record<string, string> = {};
-        data.members.forEach((m: Member) => {
-          vals[m.user.id] = "";
-        });
-        setSplitValues(vals);
+    const fetchData = async () => {
+      try {
+        const userRes = await apiFetch("/api/users/me");
+        let me: { id: string; name: string } | null = null;
+        if (userRes.ok) {
+          me = await userRes.json();
+          setCurrentUser(me);
+        }
+
+        const res = await apiFetch(`/api/groups/${groupId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setMembers(data.members || []);
+          const allIds = new Set<string>((data.members || []).map((m: Member) => m.user.id));
+          setSelectedMembers(allIds);
+          setForm((f) => ({
+            ...f,
+            paidById: me?.id || data.members?.[0]?.user?.id || "",
+          }));
+
+          const vals: Record<string, string> = {};
+          (data.members || []).forEach((m: Member) => {
+            vals[m.user.id] = "";
+          });
+          setSplitValues(vals);
+        }
+      } catch (err) {
+        console.error("Failed to load group details", err);
       }
     };
-    fetchMembers();
-  }, [groupId, session]);
+    fetchData();
+  }, [groupId]);
 
   const amount = parseFloat(form.amount) || 0;
   const activeMemberIds = Array.from(selectedMembers);
@@ -94,18 +104,20 @@ export default function AddExpensePage({
       case "PERCENTAGE":
         return activeMemberIds.map((id) => ({
           userId: id,
-          amount: Math.round(((parseFloat(splitValues[id] || "0") || 0) / 100) * amount * 100) / 100,
+          amount: Math.round((((parseFloat(splitValues[id] || "0") || 0) / 100) * amount) * 100) / 100,
         }));
 
       case "SHARES": {
         const totalShares = activeMemberIds.reduce(
-          (s, id) => s + (parseFloat(splitValues[id] || "0") || 0), 0
+          (s, id) => s + (parseFloat(splitValues[id] || "0") || 0),
+          0
         );
         return activeMemberIds.map((id) => ({
           userId: id,
-          amount: totalShares > 0
-            ? Math.round(((parseFloat(splitValues[id] || "0") || 0) / totalShares) * amount * 100) / 100
-            : 0,
+          amount:
+            totalShares > 0
+              ? Math.round((((parseFloat(splitValues[id] || "0") || 0) / totalShares) * amount) * 100) / 100
+              : 0,
         }));
       }
     }
@@ -117,7 +129,10 @@ export default function AddExpensePage({
     if (form.splitType === "EQUAL") return true;
     if (form.splitType === "UNEQUAL") return Math.abs(previewTotal - amount) < 0.02;
     if (form.splitType === "PERCENTAGE") {
-      const totalPct = activeMemberIds.reduce((s, id) => s + (parseFloat(splitValues[id] || "0") || 0), 0);
+      const totalPct = activeMemberIds.reduce(
+        (s, id) => s + (parseFloat(splitValues[id] || "0") || 0),
+        0
+      );
       return Math.abs(totalPct - 100) < 0.1;
     }
     if (form.splitType === "SHARES") {
@@ -132,28 +147,24 @@ export default function AddExpensePage({
     setLoading(true);
 
     try {
-      const splitDetails: Record<string, number> = {};
-      if (form.splitType !== "EQUAL") {
-        activeMemberIds.forEach((id) => {
-          splitDetails[id] = parseFloat(splitValues[id] || "0") || 0;
-        });
-      }
+      const splits = previewSplits.map((s) => ({
+        userId: s.userId,
+        amountOwed: s.amount,
+      }));
 
-      const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-      const res = await fetch(`http://localhost:8000/api/expenses`, {
+      const res = await apiFetch("/api/expenses", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
+          groupId,
           amount,
           description: form.description,
           category: form.category,
-          paidById: form.paidById,
+          paidById: form.paidById || currentUser?.id,
           splitType: form.splitType,
-          memberIds: activeMemberIds,
-          splitDetails: form.splitType !== "EQUAL" ? splitDetails : undefined,
+          splits,
         }),
       });
 
@@ -161,8 +172,8 @@ export default function AddExpensePage({
         toast.success("Expense added! 🧾");
         router.push(`/groups/${groupId}`);
       } else {
-        const data = await res.json();
-        toast.error(data.error || "Failed to add expense");
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.detail || data.error || "Failed to add expense");
       }
     } catch {
       toast.error("Something went wrong");
@@ -182,37 +193,41 @@ export default function AddExpensePage({
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://localhost:8000/api/scan-receipt", {
+      const res = await apiFetch("/api/scan-receipt", {
         method: "POST",
         body: formData,
       });
 
       if (res.ok) {
         const data = await res.json();
-        setForm(f => ({
+        setForm((f) => ({
           ...f,
-          amount: data.total_amount.toString(),
-          description: data.vendor ? `Dinner at ${data.vendor}` : f.description,
-          category: data.category_guess || f.category
+          amount: data.total_amount?.toString() || f.amount,
+          description: data.vendor ? `Receipt: ${data.vendor}` : f.description,
+          category: data.category_guess || f.category,
         }));
-        toast.success(`Scanned! Found ${data.items.length} items totaling ${data.total_amount}`);
+        toast.success(`Scanned! Total: ₹${data.total_amount}`);
       } else {
         toast.error("Failed to scan receipt");
       }
-    } catch (err) {
-      toast.error("Ensure the AI service (port 8000) is running!");
+    } catch {
+      toast.error("Ensure the backend (port 8000) is running!");
     } finally {
       setScanning(false);
-      // reset file input
-      e.target.value = '';
+      e.target.value = "";
     }
   };
 
-  const getMemberName = (id: string) => members.find((m) => m.user.id === id)?.user.name || "Unknown";
+  const getMemberName = (id: string) =>
+    members.find((m) => m.user.id === id)?.user.name || "Unknown";
 
   return (
     <div className="p-4 responsive-container-lg pb-10">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between items-start mb-6">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex justify-between items-start mb-6"
+      >
         <div>
           <button onClick={() => router.back()} className="btn btn-ghost mb-4 -ml-2">
             <ArrowLeft className="w-4 h-4" /> Back
@@ -222,7 +237,7 @@ export default function AddExpensePage({
             Who paid for what? Let&apos;s split it up 💸
           </p>
         </div>
-        
+
         {/* AI Scan Button */}
         <label className="btn btn-secondary text-xs cursor-pointer relative overflow-hidden">
           {scanning ? (
@@ -232,10 +247,10 @@ export default function AddExpensePage({
               <span className="text-lg">✨</span> AI Scan
             </span>
           )}
-          <input 
-            type="file" 
-            accept="image/*" 
-            className="absolute inset-0 opacity-0 cursor-pointer" 
+          <input
+            type="file"
+            accept="image/*"
+            className="absolute inset-0 opacity-0 cursor-pointer"
             onChange={handleAIScan}
             disabled={scanning}
           />
@@ -288,12 +303,11 @@ export default function AddExpensePage({
                 key={cat.value}
                 type="button"
                 onClick={() => setForm({ ...form, category: cat.value })}
-                className={`chip transition-all ${form.category === cat.value ? "ring-1" : ""}`}
-                style={form.category === cat.value ? {
-                  background: "var(--color-brand-600)",
-                  color: "white",
-                  ringColor: "var(--color-brand-400)",
-                } : {}}
+                className={`chip transition-all ${
+                  form.category === cat.value
+                    ? "bg-[#335c52] text-white ring-2 ring-[#335c52]/40"
+                    : ""
+                }`}
               >
                 {cat.emoji} {cat.label}
               </button>
@@ -312,13 +326,13 @@ export default function AddExpensePage({
                 key={m.user.id}
                 type="button"
                 onClick={() => setForm({ ...form, paidById: m.user.id })}
-                className={`chip transition-all ${form.paidById === m.user.id ? "ring-1" : ""}`}
-                style={form.paidById === m.user.id ? {
-                  background: "var(--color-brand-600)",
-                  color: "white",
-                } : {}}
+                className={`chip transition-all ${
+                  form.paidById === m.user.id
+                    ? "bg-[#335c52] text-white ring-2 ring-[#335c52]/40"
+                    : ""
+                }`}
               >
-                {m.user.name} {m.user.id === session?.user?.id && "(you)"}
+                {m.user.name} {m.user.id === currentUser?.id && "(you)"}
               </button>
             ))}
           </div>
@@ -336,15 +350,10 @@ export default function AddExpensePage({
                 type="button"
                 onClick={() => setForm({ ...form, splitType: type })}
                 className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
-                  form.splitType === type ? "" : ""
+                  form.splitType === type
+                    ? "bg-[#335c52] text-white"
+                    : "bg-white text-gray-600 border border-gray-100"
                 }`}
-                style={form.splitType === type ? {
-                  background: "var(--color-brand-600)",
-                  color: "white",
-                } : {
-                  background: "var(--color-surface-card)",
-                  color: "var(--color-text-muted)",
-                }}
               >
                 {type === "EQUAL" ? "Equal" : type === "UNEQUAL" ? "Exact" : type === "PERCENTAGE" ? "%" : "Shares"}
               </button>
