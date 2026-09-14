@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ChevronLeft, User, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { apiFetch } from "@/lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -37,7 +38,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/auth/register", {
+      const res = await apiFetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: form.email, password: form.password, name: form.name }),
@@ -47,10 +48,11 @@ export default function RegisterPage() {
         toast.success("Account created! You can now log in. 🚀");
         router.push("/login");
       } else {
-        toast.error("Registration failed — email might already exist");
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.detail || "Registration failed — email might already exist");
       }
     } catch {
-      toast.error("Ensure the Python backend (port 8000) is running!");
+      toast.error("Ensure the backend (port 8000) is running!");
     } finally {
       setLoading(false);
     }

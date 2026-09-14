@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Upload, ScanLine, Sparkles, FileText } from "lucide-react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
+import { apiFetch } from "@/lib/api";
 
 const SplitText = dynamic(() => import("@/components/SplitText"), { ssr: false });
 
@@ -22,7 +23,7 @@ export default function ScanReceiptPage() {
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://localhost:8000/api/scan-receipt", {
+      const res = await apiFetch("/api/scan-receipt", {
         method: "POST",
         body: formData,
       });

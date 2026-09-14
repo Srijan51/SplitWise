@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import { apiFetch, setToken } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function LoginPage() {
       formData.append("username", form.email);
       formData.append("password", form.password);
 
-      const res = await fetch("http://localhost:8000/api/auth/login", {
+      const res = await apiFetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -32,15 +33,16 @@ export default function LoginPage() {
 
       if (res.ok) {
         const data = await res.json();
-        document.cookie = `token=${data.access_token}; path=/; max-age=86400`;
+        setToken(data.access_token);
         toast.success("Welcome back! 🎉");
         router.push("/dashboard");
         router.refresh();
       } else {
-        toast.error("Invalid email or password");
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.detail || "Invalid email or password");
       }
     } catch {
-      toast.error("Ensure the Python backend (port 8000) is running!");
+      toast.error("Ensure the backend (port 8000) is running!");
     } finally {
       setLoading(false);
     }

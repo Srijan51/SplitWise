@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import { API_BASE } from "@/lib/api";
 
 type SocketContextType = {
   socket: Socket | null;
@@ -18,19 +19,25 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const socketInstance = io({
-      path: "/api/socketio",
-      addTrailingSlash: false,
+    const socketUrl = API_BASE;
+    const socketInstance = io(socketUrl, {
+      path: "/socket.io",
+      transports: ["websocket", "polling"],
+      autoConnect: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
     });
 
     socketInstance.on("connect", () => {
       setIsConnected(true);
-      console.log("🔌 Socket connected");
     });
 
     socketInstance.on("disconnect", () => {
       setIsConnected(false);
-      console.log("🔌 Socket disconnected");
+    });
+
+    socketInstance.on("connect_error", () => {
+      setIsConnected(false);
     });
 
     setSocket(socketInstance);
